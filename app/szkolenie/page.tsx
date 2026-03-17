@@ -307,6 +307,30 @@ Styl: [STYL]`,
                       {t.training.startModule}
                       <ArrowRight size={14} />
                     </Link>
+                  ) : module.id === "business" ? (
+                    <Link
+                      href="/szkolenie/ai-w-biznesie"
+                      className="inline-flex items-center gap-2 text-emerald-400 text-sm font-medium hover:text-emerald-300 transition-colors"
+                    >
+                      {t.training.startModule}
+                      <ArrowRight size={14} />
+                    </Link>
+                  ) : module.id === "ai-optimization" ? (
+                    <Link
+                      href="/szkolenie/optymalizacja-pracy"
+                      className="inline-flex items-center gap-2 text-cyan-400 text-sm font-medium hover:text-cyan-300 transition-colors"
+                    >
+                      {t.training.startModule}
+                      <ArrowRight size={14} />
+                    </Link>
+                  ) : module.id === "prompts-collection" ? (
+                    <Link
+                      href="/szkolenie/kolekcja-promptow"
+                      className="inline-flex items-center gap-2 text-amber-400 text-sm font-medium hover:text-amber-300 transition-colors"
+                    >
+                      {t.training.startModule}
+                      <ArrowRight size={14} />
+                    </Link>
                   ) : (
                     <button className="inline-flex items-center gap-2 text-blue-400 text-sm font-medium hover:text-blue-300 transition-colors">
                       {t.training.startModule}
