@@ -22,6 +22,8 @@ import { lessons, semesters } from "./lessons";
 import type { ContentBlock } from "./lessons";
 import { quizQuestions } from "./quiz";
 import { useAccess, isLessonLocked, LessonLockOverlay } from "@/app/components/DemoGate";
+import { NotesPanel, HomeworkPanel, ProgressTracker, useSaveProgress } from "@/app/components/TrainingFeatures";
+import { HOMEWORK } from "@/lib/homework";
 
 const iconMap: Record<string, typeof Brain> = { Brain, AlertCircle, Sparkles };
 
@@ -34,7 +36,10 @@ export default function PodstawyPromptinguPage() {
   const [quizPage, setQuizPage] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
   const [showLock, setShowLock] = useState(false);
+  const [lessonNotes, setLessonNotes] = useState("");
   const { hasFullAccess } = useAccess();
+  const { saveProgress } = useSaveProgress("podstawy-promptingu");
+  const homeworkTasks = HOMEWORK["podstawy-promptingu"] || [];
 
   const QUIZ_PER_PAGE = 10;
   const totalQuizPages = Math.ceil(quizQuestions.length / QUIZ_PER_PAGE);
@@ -50,6 +55,7 @@ export default function PodstawyPromptinguPage() {
   const handleNext = () => {
     if (!completedLessons.includes(currentLesson)) {
       setCompletedLessons([...completedLessons, currentLesson]);
+      saveProgress(currentLesson);
     }
     if (currentLesson < lessons.length - 1) {
       setCurrentLesson(currentLesson + 1);
@@ -200,17 +206,12 @@ export default function PodstawyPromptinguPage() {
               <span className="px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-medium">Certyfikat: 32/40</span>
             </div>
 
-            {completedLessons.length > 0 && (
-              <div className="mb-10 p-4 rounded-xl bg-[#0f0f0f] border border-white/5">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-400 text-sm font-medium">Postęp kursu</span>
-                  <span className="text-white text-sm font-bold">{completedLessons.length}/{lessons.length} lekcji</span>
-                </div>
-                <div className="w-full h-2 bg-[#1a1a1a] rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-blue-600 to-purple-500 rounded-full transition-all" style={{ width: `${(completedLessons.length / lessons.length) * 100}%` }} />
-                </div>
-              </div>
-            )}
+            <ProgressTracker
+              moduleSlug="podstawy-promptingu"
+              totalLessons={lessons.length}
+              currentLesson={currentLesson}
+              onResumeLesson={(idx) => startLesson(idx)}
+            />
           </motion.div>
 
           {semesters.map((sem, si) => (
@@ -431,6 +432,18 @@ export default function PodstawyPromptinguPage() {
             </ul>
           </div>
         </motion.div>
+
+        {/* Notes */}
+        <div className="mb-6">
+          <NotesPanel moduleSlug="podstawy-promptingu" lessonIndex={currentLesson} onNotesChange={setLessonNotes} />
+        </div>
+
+        {/* Homework */}
+        {homeworkTasks[currentLesson] && (
+          <div className="mb-6">
+            <HomeworkPanel moduleSlug="podstawy-promptingu" lessonIndex={currentLesson} task={homeworkTasks[currentLesson]} />
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-white/10">
           <button onClick={handlePrev} disabled={currentLesson === 0} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold border border-white/5 transition-all">

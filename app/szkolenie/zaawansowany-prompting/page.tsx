@@ -25,6 +25,8 @@ import type { ContentBlock } from "./lessons";
 import { quizQuestions } from "./quiz";
 import { homeworkTasks } from "./homework";
 import { useAccess, isLessonLocked, LessonLockOverlay } from "@/app/components/DemoGate";
+import { NotesPanel, HomeworkPanel, ProgressTracker, useSaveProgress } from "@/app/components/TrainingFeatures";
+import { HOMEWORK } from "@/lib/homework";
 
 const iconMap: Record<string, typeof Brain> = { Brain, AlertCircle, Sparkles };
 
@@ -44,7 +46,10 @@ export default function ZaawansowanyPromptingPage() {
   const [quizPage, setQuizPage] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
   const [showLock, setShowLock] = useState(false);
+  const [lessonNotes, setLessonNotes] = useState("");
   const { hasFullAccess } = useAccess();
+  const { saveProgress } = useSaveProgress("zaawansowany-prompting");
+  const hwTasks = HOMEWORK["zaawansowany-prompting"] || [];
 
   const QUIZ_PER_PAGE = 10;
   const totalQuizPages = Math.ceil(quizQuestions.length / QUIZ_PER_PAGE);
@@ -61,6 +66,7 @@ export default function ZaawansowanyPromptingPage() {
   const handleNext = () => {
     if (!completedLessons.includes(currentLesson)) {
       setCompletedLessons([...completedLessons, currentLesson]);
+      saveProgress(currentLesson);
     }
     if (currentLesson < lessons.length - 1) {
       setCurrentLesson(currentLesson + 1);
@@ -555,6 +561,18 @@ export default function ZaawansowanyPromptingPage() {
             </ul>
           </div>
         </motion.div>
+
+        {/* Notes */}
+        <div className="mb-6">
+          <NotesPanel moduleSlug="zaawansowany-prompting" lessonIndex={currentLesson} onNotesChange={setLessonNotes} />
+        </div>
+
+        {/* Homework */}
+        {hwTasks[currentLesson] && (
+          <div className="mb-6">
+            <HomeworkPanel moduleSlug="zaawansowany-prompting" lessonIndex={currentLesson} task={hwTasks[currentLesson]} />
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-white/10">
           <button onClick={handlePrev} disabled={currentLesson === 0} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold border border-white/5 transition-all">

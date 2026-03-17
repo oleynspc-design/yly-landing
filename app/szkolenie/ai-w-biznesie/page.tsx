@@ -24,6 +24,8 @@ import { useAccess, isLessonLocked, LessonLockOverlay } from "@/app/components/D
 import MicroQuiz from "@/app/components/MicroQuiz";
 import type { MicroQuizData } from "@/app/components/MicroQuiz";
 import { microQuizzes } from "./micro-quizzes";
+import { NotesPanel, HomeworkPanel, useSaveProgress } from "@/app/components/TrainingFeatures";
+import { HOMEWORK } from "@/lib/homework";
 
 const iconMap: Record<string, typeof Brain> = { Brain, AlertCircle, Sparkles, Zap };
 
@@ -37,7 +39,10 @@ export default function AiWBiznesPage() {
   const contentRef = useRef<HTMLDivElement>(null);
   const [showLock, setShowLock] = useState(false);
   const [activeMicroQuiz, setActiveMicroQuiz] = useState<MicroQuizData | null>(null);
+  const [lessonNotes, setLessonNotes] = useState("");
   const { hasFullAccess } = useAccess();
+  const { saveProgress } = useSaveProgress("ai-w-biznesie");
+  const hwTasks = HOMEWORK["ai-w-biznesie"] || [];
 
   const QUIZ_PER_PAGE = 10;
   const totalQuizPages = Math.ceil(quizQuestions.length / QUIZ_PER_PAGE);
@@ -54,6 +59,7 @@ export default function AiWBiznesPage() {
   const handleNext = () => {
     if (!completedLessons.includes(currentLesson)) {
       setCompletedLessons([...completedLessons, currentLesson]);
+      saveProgress(currentLesson);
     }
     const mq = microQuizzes.find((q) => q.afterLesson === currentLesson);
     if (mq && !activeMicroQuiz) { setActiveMicroQuiz(mq); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
@@ -424,6 +430,8 @@ export default function AiWBiznesPage() {
             </ul>
           </div>
         </motion.div>
+        <div className="mb-6"><NotesPanel moduleSlug="ai-w-biznesie" lessonIndex={currentLesson} onNotesChange={setLessonNotes} /></div>
+        {hwTasks[currentLesson] && <div className="mb-6"><HomeworkPanel moduleSlug="ai-w-biznesie" lessonIndex={currentLesson} task={hwTasks[currentLesson]} /></div>}
         {activeMicroQuiz ? (
           <MicroQuiz quiz={activeMicroQuiz} accentColor="emerald" onComplete={() => { setActiveMicroQuiz(null); handleNext(); }} />
         ) : (

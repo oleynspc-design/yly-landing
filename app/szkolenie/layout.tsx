@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser, isAuthConfigured } from "@/lib/auth";
 import TrainingNav from "@/app/components/TrainingNav";
 import OnboardingGuard from "@/app/components/OnboardingGuard";
+import HelplyWrapper from "@/app/components/HelplyWrapper";
 
 export default async function TrainingLayout({
   children,
@@ -46,6 +47,7 @@ export default async function TrainingLayout({
         </div>
       )}
       {children}
+      <HelplyWrapper />
     </>
   );
 }

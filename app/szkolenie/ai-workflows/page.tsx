@@ -21,6 +21,8 @@ import { lessons, semesters } from "./lessons";
 import type { ContentBlock } from "./lessons";
 import { quizQuestions } from "./quiz";
 import { useAccess, isLessonLocked, LessonLockOverlay } from "@/app/components/DemoGate";
+import { NotesPanel, HomeworkPanel, useSaveProgress } from "@/app/components/TrainingFeatures";
+import { HOMEWORK } from "@/lib/homework";
 
 const iconMap: Record<string, typeof Brain> = { Brain, AlertCircle, Sparkles, Zap };
 
@@ -33,7 +35,10 @@ export default function AiWorkflowsPage() {
   const [quizPage, setQuizPage] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
   const [showLock, setShowLock] = useState(false);
+  const [lessonNotes, setLessonNotes] = useState("");
   const { hasFullAccess } = useAccess();
+  const { saveProgress } = useSaveProgress("ai-workflows");
+  const hwTasks = HOMEWORK["ai-workflows"] || [];
 
   const QUIZ_PER_PAGE = 10;
   const totalQuizPages = Math.ceil(quizQuestions.length / QUIZ_PER_PAGE);
@@ -49,6 +54,7 @@ export default function AiWorkflowsPage() {
   const handleNext = () => {
     if (!completedLessons.includes(currentLesson)) {
       setCompletedLessons([...completedLessons, currentLesson]);
+      saveProgress(currentLesson);
     }
     if (currentLesson < lessons.length - 1) {
       setCurrentLesson(currentLesson + 1);
@@ -430,6 +436,9 @@ export default function AiWorkflowsPage() {
             </ul>
           </div>
         </motion.div>
+
+        <div className="mb-6"><NotesPanel moduleSlug="ai-workflows" lessonIndex={currentLesson} onNotesChange={setLessonNotes} /></div>
+        {hwTasks[currentLesson] && <div className="mb-6"><HomeworkPanel moduleSlug="ai-workflows" lessonIndex={currentLesson} task={hwTasks[currentLesson]} /></div>}
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-white/10">
           <button onClick={handlePrev} disabled={currentLesson === 0} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold border border-white/5 transition-all">

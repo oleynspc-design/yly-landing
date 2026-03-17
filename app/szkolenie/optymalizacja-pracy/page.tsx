@@ -24,6 +24,8 @@ import { useAccess, isLessonLocked, LessonLockOverlay } from "@/app/components/D
 import MicroQuiz from "@/app/components/MicroQuiz";
 import type { MicroQuizData } from "@/app/components/MicroQuiz";
 import { microQuizzes } from "./micro-quizzes";
+import { NotesPanel, HomeworkPanel, useSaveProgress } from "@/app/components/TrainingFeatures";
+import { HOMEWORK } from "@/lib/homework";
 
 const iconMap: Record<string, typeof Brain> = { Brain, AlertCircle, Sparkles, Zap };
 
@@ -37,14 +39,17 @@ export default function OptymalizacjaPracyPage() {
   const contentRef = useRef<HTMLDivElement>(null);
   const [showLock, setShowLock] = useState(false);
   const [activeMicroQuiz, setActiveMicroQuiz] = useState<MicroQuizData | null>(null);
+  const [lessonNotes, setLessonNotes] = useState("");
   const { hasFullAccess } = useAccess();
+  const { saveProgress } = useSaveProgress("optymalizacja-pracy");
+  const hwTasks = HOMEWORK["optymalizacja-pracy"] || [];
   const QUIZ_PER_PAGE = 10;
   const totalQuizPages = Math.ceil(quizQuestions.length / QUIZ_PER_PAGE);
   const progress = view === "lesson" ? ((currentLesson + 1) / lessons.length) * 100 : 0;
   const PASS_SCORE = Math.ceil(quizQuestions.length * 0.8);
 
   const startLesson = (index: number) => { if (isLessonLocked(index, hasFullAccess)) { setShowLock(true); return; } setCurrentLesson(index); setView("lesson"); window.scrollTo({ top: 0, behavior: "smooth" }); };
-  const handleNext = () => { if (!completedLessons.includes(currentLesson)) setCompletedLessons([...completedLessons, currentLesson]); const mq = microQuizzes.find((q) => q.afterLesson === currentLesson); if (mq && !activeMicroQuiz) { setActiveMicroQuiz(mq); window.scrollTo({ top: 0, behavior: "smooth" }); return; } if (currentLesson < lessons.length - 1) { setCurrentLesson(currentLesson + 1); setActiveMicroQuiz(null); window.scrollTo({ top: 0, behavior: "smooth" }); } else { setCompletedLessons([...new Set([...completedLessons, currentLesson])]); setActiveMicroQuiz(null); setView("quiz"); window.scrollTo({ top: 0, behavior: "smooth" }); } };
+  const handleNext = () => { if (!completedLessons.includes(currentLesson)) { setCompletedLessons([...completedLessons, currentLesson]); saveProgress(currentLesson); } const mq = microQuizzes.find((q) => q.afterLesson === currentLesson); if (mq && !activeMicroQuiz) { setActiveMicroQuiz(mq); window.scrollTo({ top: 0, behavior: "smooth" }); return; } if (currentLesson < lessons.length - 1) { setCurrentLesson(currentLesson + 1); setActiveMicroQuiz(null); window.scrollTo({ top: 0, behavior: "smooth" }); } else { setCompletedLessons([...new Set([...completedLessons, currentLesson])]); setActiveMicroQuiz(null); setView("quiz"); window.scrollTo({ top: 0, behavior: "smooth" }); } };
   const handlePrev = () => { if (currentLesson > 0) { setCurrentLesson(currentLesson - 1); window.scrollTo({ top: 0, behavior: "smooth" }); } };
   const handleAnswer = (qi: number, ai: number) => { const a = [...quizAnswers]; a[qi] = ai; setQuizAnswers(a); };
   const copyToClipboard = (text: string) => { navigator.clipboard.writeText(text); };
@@ -162,6 +167,8 @@ export default function OptymalizacjaPracyPage() {
             <ul className="grid sm:grid-cols-2 gap-4">{lesson.tips.map((tip, i) => <li key={i} className="flex items-start gap-3 text-gray-300 bg-black/20 p-4 rounded-xl"><CheckCircle size={20} className="text-yellow-500 flex-shrink-0 mt-0.5" /><span className="leading-relaxed">{tip}</span></li>)}</ul>
           </div>
         </motion.div>
+        <div className="mb-6"><NotesPanel moduleSlug="optymalizacja-pracy" lessonIndex={currentLesson} onNotesChange={setLessonNotes} /></div>
+        {hwTasks[currentLesson] && <div className="mb-6"><HomeworkPanel moduleSlug="optymalizacja-pracy" lessonIndex={currentLesson} task={hwTasks[currentLesson]} /></div>}
         {activeMicroQuiz ? (
           <MicroQuiz quiz={activeMicroQuiz} accentColor="cyan" onComplete={() => { setActiveMicroQuiz(null); handleNext(); }} />
         ) : (

@@ -13,6 +13,9 @@ import {
   Copy,
   Check,
   Zap,
+  BookmarkPlus,
+  BookOpen,
+  CheckCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useLang } from "@/app/context/LanguageContext";
@@ -37,6 +40,7 @@ export default function PromptlyPage() {
   const [mode, setMode] = useState("improve");
   const [industry, setIndustry] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [savedToLib, setSavedToLib] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -45,6 +49,15 @@ export default function PromptlyPage() {
       .then((r) => r.json())
       .then((d) => { if (d.industry) setIndustry(d.industry); })
       .catch(() => {});
+
+    // Pick up content from Helply or notes
+    const fromHelply = sessionStorage.getItem("helply_to_promptly");
+    if (fromHelply) {
+      setInput(fromHelply);
+      sessionStorage.removeItem("helply_to_promptly");
+      setMode("improve");
+      inputRef.current?.focus();
+    }
   }, []);
 
   useEffect(() => {
@@ -99,6 +112,25 @@ export default function PromptlyPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const saveToLibrary = async (content: string) => {
+    try {
+      const title = content.length > 60 ? content.slice(0, 60) + "..." : content;
+      await fetch("/api/prompts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: `PROMPTLY: ${title}`,
+          content,
+          category: "general",
+          isPublic: false,
+          source: "promptly",
+        }),
+      });
+      setSavedToLib(content.slice(0, 20));
+      setTimeout(() => setSavedToLib(null), 3000);
+    } catch {}
+  };
+
   const extractCodeBlocks = (text: string) => {
     const parts: { type: "text" | "code"; content: string }[] = [];
     const regex = /```[\s\S]*?```/g;
@@ -150,14 +182,24 @@ export default function PromptlyPage() {
                   <div key={j} className="relative rounded-xl bg-[#0a0a0a] border border-white/10 overflow-hidden">
                     <div className="flex items-center justify-between px-3 py-2 bg-[#0f0f0f] border-b border-white/5">
                       <span className="text-xs text-gray-500 font-medium">Prompt</span>
-                      <button
-                        onClick={() => copyToClipboard(part.content)}
-                        className="flex items-center gap-1 px-2 py-1 rounded-md text-xs text-gray-400 hover:bg-white/5 transition-colors"
-                        title="Kopiuj prompt"
-                      >
-                        {copied ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
-                        {copied ? "Skopiowano" : "Kopiuj"}
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => saveToLibrary(part.content)}
+                          className="flex items-center gap-1 px-2 py-1 rounded-md text-xs text-amber-400 hover:bg-amber-500/10 transition-colors"
+                          title="Zapisz do biblioteki"
+                        >
+                          {savedToLib && part.content.startsWith(savedToLib) ? <CheckCircle size={12} className="text-green-400" /> : <BookmarkPlus size={12} />}
+                          {savedToLib && part.content.startsWith(savedToLib) ? "Zapisano!" : "Biblioteka"}
+                        </button>
+                        <button
+                          onClick={() => copyToClipboard(part.content)}
+                          className="flex items-center gap-1 px-2 py-1 rounded-md text-xs text-gray-400 hover:bg-white/5 transition-colors"
+                          title="Kopiuj prompt"
+                        >
+                          {copied ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
+                          {copied ? "Skopiowano" : "Kopiuj"}
+                        </button>
+                      </div>
                     </div>
                     <pre className="p-4 text-sm font-mono text-purple-200 whitespace-pre-wrap leading-relaxed overflow-x-auto">{part.content}</pre>
                   </div>
@@ -203,12 +245,21 @@ export default function PromptlyPage() {
                 </div>
               </div>
             </div>
-            {industry && (
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 text-xs text-gray-400">
-                <Globe size={12} />
-                {industry}
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              <Link
+                href="/szkolenie/biblioteka-promptow"
+                className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs text-amber-400 hover:bg-amber-500/20 transition-colors"
+              >
+                <BookOpen size={12} />
+                Biblioteka
+              </Link>
+              {industry && (
+                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 text-xs text-gray-400">
+                  <Globe size={12} />
+                  {industry}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Mode selector */}

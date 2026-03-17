@@ -344,9 +344,10 @@ Styl: [STYL]`,
         </div>
       </section>
 
-      {/* PROMPTLY Banner */}
+      {/* AI Assistants */}
       <section className="py-16 bg-[#060606]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+          {/* PROMPTLY Banner */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -371,6 +372,67 @@ Styl: [STYL]`,
                   </div>
                   <div className="flex items-center gap-2 px-6 py-3 rounded-xl bg-purple-600 group-hover:bg-purple-500 text-white font-bold transition-all">
                     Otwórz
+                    <ArrowRight size={16} />
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </motion.div>
+
+          {/* HELPLY Banner */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
+            <div className="relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-gradient-to-r from-emerald-900/20 via-[#0f0f0f] to-cyan-900/20 p-8 sm:p-10">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl" />
+              <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
+                  <MessageSquare size={32} className="text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h2 className="text-2xl sm:text-3xl font-black text-white">HELPLY</h2>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold">MENTOR</span>
+                  </div>
+                  <p className="text-gray-400 text-sm sm:text-base max-w-xl">
+                    Twój AI mentor — streszcza moduły, daje tipy i przykłady, pomaga z zadaniami. Zintegrowany z PROMPTLY.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 font-bold">
+                  <MessageSquare size={16} />
+                  Kliknij ikonę na dole →
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Prompt Library Banner */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <Link href="/szkolenie/biblioteka-promptow" className="block group">
+              <div className="relative overflow-hidden rounded-2xl border border-amber-500/20 bg-gradient-to-r from-amber-900/20 via-[#0f0f0f] to-orange-900/20 p-8 sm:p-10 hover:border-amber-500/40 transition-all">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl" />
+                <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center flex-shrink-0">
+                    <BookOpen size={32} className="text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h2 className="text-2xl sm:text-3xl font-black text-white">Biblioteka Promptów</h2>
+                    </div>
+                    <p className="text-gray-400 text-sm sm:text-base max-w-xl">
+                      Prompty społeczności + Twoje własne. Zapisuj z PROMPTLY, udostępniaj i odkrywaj najlepsze prompty.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-600 group-hover:bg-amber-500 text-white font-bold transition-all">
+                    Przeglądaj
                     <ArrowRight size={16} />
                   </div>
                 </div>
