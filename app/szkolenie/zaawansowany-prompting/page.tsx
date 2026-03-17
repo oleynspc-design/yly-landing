@@ -43,12 +43,15 @@ export default function ZaawansowanyPromptingPage() {
   const [quizPage, setQuizPage] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
 
+  console.log("Current view:", view, "lessons count:", lessons.length);
+
   const QUIZ_PER_PAGE = 10;
   const totalQuizPages = Math.ceil(quizQuestions.length / QUIZ_PER_PAGE);
   const progress = view === "lesson" ? ((currentLesson + 1) / lessons.length) * 100 : 0;
   const PASS_SCORE = Math.ceil(quizQuestions.length * 0.8);
 
   const startLesson = (index: number) => {
+    console.log("startLesson called with index:", index);
     setCurrentLesson(index);
     setView("lesson");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -323,6 +326,10 @@ export default function ZaawansowanyPromptingPage() {
                 {sem.lessons.map((li) => {
                   const lesson = lessons[li];
                   const done = completedLessons.includes(li);
+                  if (!lesson) {
+                    console.error("Lesson not found for index:", li);
+                    return null;
+                  }
                   return (
                     <button key={li} onClick={() => startLesson(li)} className={`w-full text-left p-5 rounded-xl border transition-all group ${done ? "bg-green-950/10 border-green-500/20 hover:border-green-500/40" : "bg-[#0f0f0f] border-white/5 hover:border-purple-500/30"}`}>
                       <div className="flex items-center justify-between">
