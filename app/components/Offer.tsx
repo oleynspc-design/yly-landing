@@ -2,45 +2,38 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
-import { Play, BookOpen, Sparkles, Star, ArrowRight } from "lucide-react";
+import { Check, Sparkles, Crown, Star, Zap, ArrowRight, Shield, Gift } from "lucide-react";
 import Link from "next/link";
 import { useLang } from "../context/LanguageContext";
 
-const icons = [Play, BookOpen, Sparkles, Star];
-const tagColors: Record<string, string> = {
-  Bestseller: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-  Popularny: "bg-green-500/10 text-green-400 border-green-500/20",
-  Popular: "bg-green-500/10 text-green-400 border-green-500/20",
-  Популярний: "bg-green-500/10 text-green-400 border-green-500/20",
-  Nowy: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  New: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  Новий: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  Nuevo: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-  Premium: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-  Бестселер: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-};
+const tierIcons = [Star, Zap, Crown];
+const tierColors = [
+  { border: "border-white/10", bg: "bg-[#0f0f0f]", accent: "text-gray-400", btn: "bg-white/5 hover:bg-white/10 border border-white/5", check: "text-gray-500" },
+  { border: "border-purple-500/40", bg: "bg-gradient-to-b from-purple-500/5 to-[#0f0f0f]", accent: "text-purple-400", btn: "bg-purple-600 hover:bg-purple-500 hover:shadow-lg hover:shadow-purple-500/25", check: "text-purple-400" },
+  { border: "border-yellow-500/30", bg: "bg-gradient-to-b from-yellow-500/5 to-[#0f0f0f]", accent: "text-yellow-400", btn: "bg-yellow-600 hover:bg-yellow-500 hover:shadow-lg hover:shadow-yellow-500/25", check: "text-yellow-400" },
+];
 
 export default function Offer() {
   const { t } = useLang();
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
 
+  const tiers = t.offer.tiers || [];
+
   return (
     <section id="offer" className="relative py-24 lg:py-32 bg-[#060606]">
-      {/* Background glow */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-blue-600/5 blur-[100px]" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-purple-600/5 blur-[100px]" />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" ref={ref}>
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <span className="inline-block px-4 py-1.5 rounded-full bg-blue-600/10 border border-blue-500/20 text-blue-400 text-sm font-medium mb-4">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-purple-600/10 border border-purple-500/20 text-purple-400 text-sm font-medium mb-4">
             {t.offer.badge}
           </span>
           <h2 className="text-4xl sm:text-5xl font-black text-white mb-4">
@@ -49,69 +42,93 @@ export default function Offer() {
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">{t.offer.sub}</p>
         </motion.div>
 
-        {/* Cards grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {t.offer.items.map((item, i) => {
-            const Icon = icons[i];
-            const isPremium = item.tag === "Premium";
+        {/* Demo banner */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mb-12 p-4 rounded-2xl bg-green-500/5 border border-green-500/20 text-center"
+        >
+          <div className="flex items-center justify-center gap-2 text-green-400 font-bold text-sm mb-1">
+            <Gift size={16} />
+            Tryb Demo — za darmo!
+          </div>
+          <p className="text-gray-400 text-sm">Zarejestruj się i przetestuj pierwszą lekcję każdego modułu bez płacenia. Gdy będziesz gotowy — odblokuj pełny dostęp.</p>
+        </motion.div>
+
+        {/* Pricing tiers */}
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
+          {tiers.map((tier: { name: string; price: string; period: string; desc: string; features: string[]; cta: string; popular: boolean }, i: number) => {
+            const Icon = tierIcons[i] || Star;
+            const colors = tierColors[i] || tierColors[0];
             return (
               <motion.div
-                key={i}
+                key={tier.name}
                 initial={{ opacity: 0, y: 40 }}
                 animate={inView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.6, delay: 0.1 * i }}
-                className={`card-glow relative flex flex-col p-6 rounded-2xl border ${
-                  isPremium
-                    ? "bg-gradient-to-b from-blue-900/20 to-[#0f0f0f] border-blue-500/30"
-                    : "bg-[#0f0f0f] border-white/5"
-                }`}
+                transition={{ duration: 0.6, delay: 0.15 * i }}
+                className={`relative flex flex-col rounded-2xl border p-8 ${colors.border} ${colors.bg}`}
               >
-                {isPremium && (
-                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
+                {tier.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-purple-600 text-white text-xs font-bold flex items-center gap-1">
+                    <Sparkles size={12} />
+                    NAJPOPULARNIEJSZY
+                  </div>
                 )}
 
-                {/* Tag */}
-                <span
-                  className={`self-start text-xs font-semibold px-2.5 py-1 rounded-full border mb-4 ${
-                    tagColors[item.tag] || "bg-blue-500/10 text-blue-400 border-blue-500/20"
-                  }`}
-                >
-                  {item.tag}
-                </span>
-
-                {/* Icon */}
-                <div
-                  className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${
-                    isPremium
-                      ? "bg-blue-600/20 border border-blue-500/30"
-                      : "bg-white/5 border border-white/5"
-                  }`}
-                >
-                  <Icon size={22} className={isPremium ? "text-blue-400" : "text-gray-400"} />
+                <div className="flex items-center gap-2 mb-4">
+                  <Icon size={20} className={colors.accent} />
+                  <span className={`text-xs font-bold uppercase ${colors.accent}`}>{tier.name}</span>
                 </div>
 
-                <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed flex-1 mb-4">{item.desc}</p>
+                <div className="mb-4">
+                  <span className="text-4xl font-black text-white">{tier.price}</span>
+                  <span className="text-gray-500 text-sm ml-2">zł {tier.period}</span>
+                </div>
 
-                {/* Price */}
-                <div className="text-blue-400 font-bold text-sm mb-4">{item.price}</div>
+                <p className="text-gray-400 text-sm mb-6">{tier.desc}</p>
 
-                {/* CTA */}
+                <ul className="space-y-3 mb-8 flex-1">
+                  {tier.features.map((f: string) => (
+                    <li key={f} className="flex items-start gap-2.5 text-sm text-gray-300">
+                      <Check size={16} className={`flex-shrink-0 mt-0.5 ${colors.check}`} />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+
                 <Link
                   href="/sklep"
-                  className={`inline-flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                    isPremium
-                      ? "bg-blue-600 hover:bg-blue-500 text-white hover:shadow-lg hover:shadow-blue-500/25"
-                      : "bg-white/5 hover:bg-white/10 text-white border border-white/5"
-                  }`}
+                  className={`inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-xl text-sm font-bold transition-all text-white ${colors.btn}`}
                 >
-                  {item.cta}
+                  {tier.cta}
                   <ArrowRight size={14} />
                 </Link>
               </motion.div>
             );
           })}
         </div>
+
+        {/* Trust badges */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
+          transition={{ duration: 0.5, delay: 0.6 }}
+          className="flex flex-wrap items-center justify-center gap-8 text-sm text-gray-500"
+        >
+          <div className="flex items-center gap-2">
+            <Shield size={16} className="text-green-500" />
+            Bezpieczna płatność Stripe
+          </div>
+          <div className="flex items-center gap-2">
+            <Check size={16} className="text-blue-500" />
+            Natychmiastowy dostęp po płatności
+          </div>
+          <div className="flex items-center gap-2">
+            <Gift size={16} className="text-purple-500" />
+            Darmowe demo bez karty
+          </div>
+        </motion.div>
       </div>
     </section>
   );
