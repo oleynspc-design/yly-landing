@@ -288,33 +288,39 @@ export default function ShopPage() {
                 <Star size={20} className="text-gray-400" />
                 <span className="text-xs font-bold uppercase text-gray-400 bg-gray-500/10 px-2.5 py-0.5 rounded-full">Basic</span>
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Pakiet Podstawowy</h3>
-              <p className="text-gray-500 text-sm mb-4 flex-1">Pełny dostęp do wszystkich kursów i materiałów szkoleniowych.</p>
+              <h3 className="text-xl font-bold text-white mb-2">Pakiet Basic</h3>
+              <div className="mb-4"><span className="text-3xl font-black text-white">199 zł</span><span className="text-gray-500 text-sm ml-2">jednorazowo</span></div>
+              <p className="text-gray-500 text-sm mb-4 flex-1">Pełny dostęp do wszystkich 7 szkoleń AI z egzaminami i certyfikatami.</p>
               <ul className="space-y-2 mb-6">
-                {["Wszystkie kursy AI", "E-booki i materiały", "Kolekcje promptów", "Łajli — asystent AI", "Dostęp do PROMPTLY"].map((f) => (
+                {["7 kompletnych szkoleń (84+ lekcji)", "Egzaminy i certyfikaty", "Kolekcja 200+ promptów", "Asystent AI PROMPTLY", "Czat grupowy", "Przyszłe aktualizacje"].map((f) => (
                   <li key={f} className="flex items-center gap-2 text-sm text-gray-300"><Check size={14} className="text-gray-500 flex-shrink-0" />{f}</li>
                 ))}
               </ul>
-              <div className="text-xs text-gray-600 mt-auto">Dostęp po wpisaniu kodu od admina</div>
+              <button onClick={() => handleBuy("basic")} disabled={buying === "basic" || hasAccess} className="w-full mt-auto px-6 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-semibold text-sm border border-white/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                {buying === "basic" ? <><Loader2 size={16} className="inline animate-spin mr-2" />Przekierowanie...</> : hasAccess ? "Masz już dostęp" : !user ? <><Lock size={16} className="inline mr-2" />Zaloguj się</> : <>Kup Basic<ArrowRight size={16} className="inline ml-2" /></>}
+              </button>
             </motion.div>
 
             {/* Pro */}
             <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }} className="relative flex flex-col rounded-2xl border border-purple-500/40 bg-gradient-to-b from-purple-500/5 to-[#0f0f0f] p-6">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-purple-600 text-white text-xs font-bold">
-                <Sparkles size={12} className="inline mr-1" />POPULARNY
+                <Sparkles size={12} className="inline mr-1" />NAJPOPULARNIEJSZY
               </div>
               <div className="flex items-center gap-2 mb-4">
                 <Zap size={20} className="text-purple-400" />
                 <span className="text-xs font-bold uppercase text-purple-400 bg-purple-500/10 px-2.5 py-0.5 rounded-full">Pro</span>
               </div>
               <h3 className="text-xl font-bold text-white mb-2">Pakiet Pro</h3>
-              <p className="text-gray-500 text-sm mb-4 flex-1">Wszystko z Basic + spotkanie online 1-na-1 z Patrykiem.</p>
+              <div className="mb-4"><span className="text-3xl font-black text-white">399 zł</span><span className="text-gray-500 text-sm ml-2">jednorazowo</span></div>
+              <p className="text-gray-500 text-sm mb-4 flex-1">Wszystko z Basic + spotkanie online 1-na-1 z ekspertem AI.</p>
               <ul className="space-y-2 mb-6">
-                {["Wszystko z pakietu Basic", "1x spotkanie online (1.5h)", "Priorytetowe wsparcie", "Spersonalizowana ścieżka AI"].map((f) => (
+                {["Wszystko z pakietu Basic", "1x spotkanie online (1.5h)", "Spersonalizowana ścieżka AI", "Priorytetowe wsparcie", "Materiały dodatkowe"].map((f) => (
                   <li key={f} className="flex items-center gap-2 text-sm text-gray-300"><Check size={14} className="text-purple-400 flex-shrink-0" />{f}</li>
                 ))}
               </ul>
-              <div className="text-xs text-gray-600 mt-auto">Dostęp po wpisaniu kodu od admina</div>
+              <button onClick={() => handleBuy("pro")} disabled={buying === "pro" || hasAccess} className="w-full mt-auto px-6 py-3.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-sm transition-all hover:shadow-lg hover:shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed">
+                {buying === "pro" ? <><Loader2 size={16} className="inline animate-spin mr-2" />Przekierowanie...</> : hasAccess ? "Masz już dostęp" : !user ? <><Lock size={16} className="inline mr-2" />Zaloguj się</> : <>Kup Pro<ArrowRight size={16} className="inline ml-2" /></>}
+              </button>
             </motion.div>
 
             {/* Premium */}
@@ -324,13 +330,16 @@ export default function ShopPage() {
                 <span className="text-xs font-bold uppercase text-yellow-400 bg-yellow-500/10 px-2.5 py-0.5 rounded-full">Premium</span>
               </div>
               <h3 className="text-xl font-bold text-white mb-2">Pakiet Premium</h3>
-              <p className="text-gray-500 text-sm mb-4 flex-1">Pełne wsparcie — 3 spotkania, priorytet, wszystkie przyszłe materiały.</p>
+              <div className="mb-4"><span className="text-3xl font-black text-white">699 zł</span><span className="text-gray-500 text-sm ml-2">jednorazowo</span></div>
+              <p className="text-gray-500 text-sm mb-4 flex-1">Pełne wsparcie — 3 spotkania, VIP dostęp, wszystkie przyszłe materiały.</p>
               <ul className="space-y-2 mb-6">
                 {["Wszystko z pakietu Pro", "3x spotkanie online (1.5h)", "Dostęp do kalendarza spotkań", "Przyszłe kursy gratis", "VIP wsparcie"].map((f) => (
                   <li key={f} className="flex items-center gap-2 text-sm text-gray-300"><Check size={14} className="text-yellow-400 flex-shrink-0" />{f}</li>
                 ))}
               </ul>
-              <div className="text-xs text-gray-600 mt-auto">Dostęp po wpisaniu kodu od admina</div>
+              <button onClick={() => handleBuy("premium")} disabled={buying === "premium" || hasAccess} className="w-full mt-auto px-6 py-3.5 rounded-xl bg-yellow-600 hover:bg-yellow-500 text-white font-bold text-sm transition-all hover:shadow-lg hover:shadow-yellow-500/25 disabled:opacity-50 disabled:cursor-not-allowed">
+                {buying === "premium" ? <><Loader2 size={16} className="inline animate-spin mr-2" />Przekierowanie...</> : hasAccess ? "Masz już dostęp" : !user ? <><Lock size={16} className="inline mr-2" />Zaloguj się</> : <>Kup Premium<ArrowRight size={16} className="inline ml-2" /></>}
+              </button>
             </motion.div>
           </div>
 
