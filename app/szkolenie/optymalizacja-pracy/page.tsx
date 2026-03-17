@@ -20,6 +20,7 @@ import {
 import { lessons, semesters } from "./lessons";
 import type { ContentBlock } from "./lessons";
 import { quizQuestions } from "./quiz";
+import { useAccess, isLessonLocked, LessonLockOverlay } from "@/app/components/DemoGate";
 
 const iconMap: Record<string, typeof Brain> = { Brain, AlertCircle, Sparkles, Zap };
 
@@ -31,13 +32,14 @@ export default function OptymalizacjaPracyPage() {
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [quizPage, setQuizPage] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
-
+  const [showLock, setShowLock] = useState(false);
+  const { hasFullAccess } = useAccess();
   const QUIZ_PER_PAGE = 10;
   const totalQuizPages = Math.ceil(quizQuestions.length / QUIZ_PER_PAGE);
   const progress = view === "lesson" ? ((currentLesson + 1) / lessons.length) * 100 : 0;
   const PASS_SCORE = Math.ceil(quizQuestions.length * 0.8);
 
-  const startLesson = (index: number) => { setCurrentLesson(index); setView("lesson"); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const startLesson = (index: number) => { if (isLessonLocked(index, hasFullAccess)) { setShowLock(true); return; } setCurrentLesson(index); setView("lesson"); window.scrollTo({ top: 0, behavior: "smooth" }); };
   const handleNext = () => { if (!completedLessons.includes(currentLesson)) setCompletedLessons([...completedLessons, currentLesson]); if (currentLesson < lessons.length - 1) { setCurrentLesson(currentLesson + 1); window.scrollTo({ top: 0, behavior: "smooth" }); } else { setCompletedLessons([...new Set([...completedLessons, currentLesson])]); setView("quiz"); window.scrollTo({ top: 0, behavior: "smooth" }); } };
   const handlePrev = () => { if (currentLesson > 0) { setCurrentLesson(currentLesson - 1); window.scrollTo({ top: 0, behavior: "smooth" }); } };
   const handleAnswer = (qi: number, ai: number) => { const a = [...quizAnswers]; a[qi] = ai; setQuizAnswers(a); };

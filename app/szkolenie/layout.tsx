@@ -18,14 +18,33 @@ export default async function TrainingLayout({
     redirect("/logowanie?next=/szkolenie");
   }
 
-  if (user.role !== "admin" && (user.trainingAccessStatus !== "granted" || user.trainingAccessScope !== "all")) {
-    redirect("/ograniczony-dostep");
+  // Allow demo users (pending) through — they see limited content
+  // Only redirect if onboarding not done yet
+  if (!user.onboardingDone) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#080808] px-4 py-16">
+        <OnboardingGuard />
+      </main>
+    );
   }
+
+  const hasFullAccess = user.role === "admin" || (user.trainingAccessStatus === "granted" && user.trainingAccessScope === "all");
 
   return (
     <>
-      {!user.onboardingDone && <OnboardingGuard />}
       <TrainingNav />
+      {!hasFullAccess && (
+        <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border-b border-blue-500/20">
+          <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <p className="text-sm text-blue-300">
+              <span className="font-bold">Tryb Demo</span> — masz dostęp do pierwszej lekcji każdego modułu. Odblokuj pełny dostęp!
+            </p>
+            <a href="/sklep" className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all">
+              Kup dostęp
+            </a>
+          </div>
+        </div>
+      )}
       {children}
     </>
   );

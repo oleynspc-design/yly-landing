@@ -24,6 +24,7 @@ import { lessons, semesters } from "./lessons";
 import type { ContentBlock } from "./lessons";
 import { quizQuestions } from "./quiz";
 import { homeworkTasks } from "./homework";
+import { useAccess, isLessonLocked, LessonLockOverlay } from "@/app/components/DemoGate";
 
 const iconMap: Record<string, typeof Brain> = { Brain, AlertCircle, Sparkles };
 
@@ -42,6 +43,8 @@ export default function ZaawansowanyPromptingPage() {
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [quizPage, setQuizPage] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
+  const [showLock, setShowLock] = useState(false);
+  const { hasFullAccess } = useAccess();
 
   const QUIZ_PER_PAGE = 10;
   const totalQuizPages = Math.ceil(quizQuestions.length / QUIZ_PER_PAGE);
@@ -49,6 +52,7 @@ export default function ZaawansowanyPromptingPage() {
   const PASS_SCORE = Math.ceil(quizQuestions.length * 0.8);
 
   const startLesson = (index: number) => {
+    if (isLessonLocked(index, hasFullAccess)) { setShowLock(true); return; }
     setCurrentLesson(index);
     setView("lesson");
     window.scrollTo({ top: 0, behavior: "smooth" });
