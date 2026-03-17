@@ -21,6 +21,9 @@ import { lessons, semesters } from "./lessons";
 import type { ContentBlock } from "./lessons";
 import { quizQuestions } from "./quiz";
 import { useAccess, isLessonLocked, LessonLockOverlay } from "@/app/components/DemoGate";
+import MicroQuiz from "@/app/components/MicroQuiz";
+import type { MicroQuizData } from "@/app/components/MicroQuiz";
+import { microQuizzes } from "./micro-quizzes";
 
 const iconMap: Record<string, typeof Brain> = { Brain, AlertCircle, Sparkles, Zap };
 
@@ -33,6 +36,7 @@ export default function AiWBiznesPage() {
   const [quizPage, setQuizPage] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
   const [showLock, setShowLock] = useState(false);
+  const [activeMicroQuiz, setActiveMicroQuiz] = useState<MicroQuizData | null>(null);
   const { hasFullAccess } = useAccess();
 
   const QUIZ_PER_PAGE = 10;
@@ -51,11 +55,15 @@ export default function AiWBiznesPage() {
     if (!completedLessons.includes(currentLesson)) {
       setCompletedLessons([...completedLessons, currentLesson]);
     }
+    const mq = microQuizzes.find((q) => q.afterLesson === currentLesson);
+    if (mq && !activeMicroQuiz) { setActiveMicroQuiz(mq); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
     if (currentLesson < lessons.length - 1) {
       setCurrentLesson(currentLesson + 1);
+      setActiveMicroQuiz(null);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       setCompletedLessons([...new Set([...completedLessons, currentLesson])]);
+      setActiveMicroQuiz(null);
       setView("quiz");
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -416,15 +424,19 @@ export default function AiWBiznesPage() {
             </ul>
           </div>
         </motion.div>
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-white/10">
-          <button onClick={handlePrev} disabled={currentLesson === 0} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold border border-white/5 transition-all">
-            <ArrowLeft size={18} /> Poprzednia
-          </button>
-          <button onClick={handleNext} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-10 py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all hover:shadow-lg hover:shadow-emerald-500/25">
-            {currentLesson === lessons.length - 1 ? "Rozpocznij Egzamin" : "Następna lekcja"}
-            <ChevronRight size={18} />
-          </button>
-        </div>
+        {activeMicroQuiz ? (
+          <MicroQuiz quiz={activeMicroQuiz} accentColor="emerald" onComplete={() => { setActiveMicroQuiz(null); handleNext(); }} />
+        ) : (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-white/10">
+            <button onClick={handlePrev} disabled={currentLesson === 0} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold border border-white/5 transition-all">
+              <ArrowLeft size={18} /> Poprzednia
+            </button>
+            <button onClick={handleNext} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-10 py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all hover:shadow-lg hover:shadow-emerald-500/25">
+              {currentLesson === lessons.length - 1 ? "Rozpocznij Egzamin" : "Następna lekcja"}
+              <ChevronRight size={18} />
+            </button>
+          </div>
+        )}
       </div>
     </main>
   );
