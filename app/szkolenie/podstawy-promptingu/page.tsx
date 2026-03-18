@@ -46,7 +46,7 @@ export default function PodstawyPromptinguPage() {
   const progress = view === "lesson" ? ((currentLesson + 1) / lessons.length) * 100 : 0;
 
   const startLesson = (index: number) => {
-    if (isLessonLocked(index, hasFullAccess)) { setShowLock(true); return; }
+    if (isLessonLocked(index, hasFullAccess, "podstawy-promptingu")) { setShowLock(true); return; }
     setCurrentLesson(index);
     setView("lesson");
     window.scrollTo({ top: 0, behavior: "smooth" });

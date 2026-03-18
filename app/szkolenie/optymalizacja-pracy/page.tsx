@@ -20,7 +20,7 @@ import {
 import { lessons, semesters } from "./lessons";
 import type { ContentBlock } from "./lessons";
 import { quizQuestions } from "./quiz";
-import { useAccess, isLessonLocked, LessonLockOverlay } from "@/app/components/DemoGate";
+import { useAccess, isLessonLocked, LessonLockOverlay, isModuleLocked, ModuleLockOverlay } from "@/app/components/DemoGate";
 import MicroQuiz from "@/app/components/MicroQuiz";
 import type { MicroQuizData } from "@/app/components/MicroQuiz";
 import { microQuizzes } from "./micro-quizzes";
@@ -40,7 +40,12 @@ export default function OptymalizacjaPracyPage() {
   const [showLock, setShowLock] = useState(false);
   const [activeMicroQuiz, setActiveMicroQuiz] = useState<MicroQuizData | null>(null);
   const [lessonNotes, setLessonNotes] = useState("");
-  const { hasFullAccess } = useAccess();
+  const { hasFullAccess, loading } = useAccess();
+
+  // Block entire module for demo users
+  if (!loading && isModuleLocked("optymalizacja-pracy", hasFullAccess)) {
+    return <ModuleLockOverlay />;
+  }
   const { saveProgress } = useSaveProgress("optymalizacja-pracy");
   const hwTasks = HOMEWORK["optymalizacja-pracy"] || [];
   const QUIZ_PER_PAGE = 10;

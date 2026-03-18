@@ -20,7 +20,7 @@ import {
 import { lessons, semesters } from "./lessons";
 import type { ContentBlock } from "./lessons";
 import { quizQuestions } from "./quiz";
-import { useAccess, isLessonLocked, LessonLockOverlay } from "@/app/components/DemoGate";
+import { useAccess, isLessonLocked, LessonLockOverlay, isModuleLocked, ModuleLockOverlay } from "@/app/components/DemoGate";
 import { NotesPanel, HomeworkPanel, useSaveProgress } from "@/app/components/TrainingFeatures";
 import { HOMEWORK } from "@/lib/homework";
 
@@ -36,7 +36,12 @@ export default function AiWorkflowsPage() {
   const contentRef = useRef<HTMLDivElement>(null);
   const [showLock, setShowLock] = useState(false);
   const [lessonNotes, setLessonNotes] = useState("");
-  const { hasFullAccess } = useAccess();
+  const { hasFullAccess, loading } = useAccess();
+
+  // Block entire module for demo users
+  if (!loading && isModuleLocked("ai-workflows", hasFullAccess)) {
+    return <ModuleLockOverlay />;
+  }
   const { saveProgress } = useSaveProgress("ai-workflows");
   const hwTasks = HOMEWORK["ai-workflows"] || [];
 

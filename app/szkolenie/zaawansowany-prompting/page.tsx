@@ -24,7 +24,7 @@ import { lessons, semesters } from "./lessons";
 import type { ContentBlock } from "./lessons";
 import { quizQuestions } from "./quiz";
 import { homeworkTasks } from "./homework";
-import { useAccess, isLessonLocked, LessonLockOverlay } from "@/app/components/DemoGate";
+import { useAccess, isLessonLocked, LessonLockOverlay, isModuleLocked, ModuleLockOverlay } from "@/app/components/DemoGate";
 import { NotesPanel, HomeworkPanel, ProgressTracker, useSaveProgress } from "@/app/components/TrainingFeatures";
 import { HOMEWORK } from "@/lib/homework";
 
@@ -47,7 +47,12 @@ export default function ZaawansowanyPromptingPage() {
   const contentRef = useRef<HTMLDivElement>(null);
   const [showLock, setShowLock] = useState(false);
   const [lessonNotes, setLessonNotes] = useState("");
-  const { hasFullAccess } = useAccess();
+  const { hasFullAccess, loading } = useAccess();
+
+  // Block entire module for demo users
+  if (!loading && isModuleLocked("zaawansowany-prompting", hasFullAccess)) {
+    return <ModuleLockOverlay />;
+  }
   const { saveProgress } = useSaveProgress("zaawansowany-prompting");
   const hwTasks = HOMEWORK["zaawansowany-prompting"] || [];
 
