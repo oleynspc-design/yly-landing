@@ -21,6 +21,10 @@ import {
   Wrench,
   ClipboardCheck,
   BarChart3,
+  Monitor,
+  UserCheck,
+  Unlock,
+  AlertTriangle,
 } from "lucide-react";
 
 type UserWithAccess = {
@@ -44,6 +48,18 @@ const PKG_BADGE: Record<string, { label: string; cls: string }> = {
   pro: { label: "Pro", cls: "bg-purple-500/10 text-purple-400 border-purple-500/20" },
   premium: { label: "Premium", cls: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" },
 };
+
+function resolveAccessTier(u: UserWithAccess): { label: string; cls: string; isDemo: boolean } {
+  if (u.role === "admin") return { label: "Admin", cls: "text-purple-400 bg-purple-500/10 border-purple-500/20", isDemo: false };
+  if (u.status === "granted" && u.granted_scope === "all") {
+    if (u.package_type === "premium") return { label: "Premium", cls: "text-yellow-400 bg-yellow-500/10 border-yellow-500/20", isDemo: false };
+    if (u.package_type === "pro") return { label: "Pro", cls: "text-blue-400 bg-blue-500/10 border-blue-500/20", isDemo: false };
+    if (u.package_type === "basic") return { label: "Basic", cls: "text-gray-300 bg-gray-500/10 border-gray-500/20", isDemo: false };
+    return { label: "Full", cls: "text-green-400 bg-green-500/10 border-green-500/20", isDemo: false };
+  }
+  if (u.status === "granted") return { label: "Partial", cls: "text-orange-400 bg-orange-500/10 border-orange-500/20", isDemo: false };
+  return { label: "DEMO", cls: "text-red-400 bg-red-500/10 border-red-500/20", isDemo: true };
+}
 
 function isOnline(lastActive: string | null): boolean {
   if (!lastActive) return false;
@@ -69,7 +85,7 @@ const ROLE_CONFIG: Record<string, { label: string; color: string; icon: typeof S
 };
 
 type SortKey = "name" | "created" | "xp" | "last_active" | "role" | "status";
-type FilterAccess = "all" | "granted" | "pending" | "none";
+type FilterAccess = "all" | "granted" | "pending" | "none" | "demo";
 type FilterRole = "all" | "admin" | "moderator" | "user";
 
 const PER_PAGE = 25;
@@ -84,6 +100,7 @@ export default function AdminPage() {
   const [fixingAccess, setFixingAccess] = useState(false);
   const [fixMessage, setFixMessage] = useState<string | null>(null);
   const [showTools, setShowTools] = useState(false);
+  const [quickGranting, setQuickGranting] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("created");
@@ -154,6 +171,22 @@ export default function AdminPage() {
 
   const isAdmin = currentAdmin?.role === "admin";
 
+  const quickGrant = async (userId: string, pkg: string) => {
+    setQuickGranting(userId);
+    try {
+      await fetch("/api/admin/fix-access", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "grant-single", userId, packageType: pkg }),
+      });
+      await fetchUsers();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setQuickGranting(null);
+    }
+  };
+
   const fixAccess = async (action: string) => {
     setFixingAccess(true);
     setFixMessage(null);
@@ -197,6 +230,7 @@ export default function AdminPage() {
       list = list.filter(u => {
         if (filterAccess === "granted") return u.status === "granted";
         if (filterAccess === "pending") return u.status === "pending";
+        if (filterAccess === "demo") return resolveAccessTier(u).isDemo;
         return !u.status || (u.status !== "granted" && u.status !== "pending");
       });
     }
@@ -270,7 +304,7 @@ export default function AdminPage() {
       )}
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 mb-6">
         <div className="rounded-xl border border-white/10 bg-[#111] p-3.5 text-center">
           <div className="text-xl font-bold text-white">{users.length}</div>
           <div className="text-[10px] text-gray-500 uppercase font-medium mt-0.5">Wszyscy</div>
@@ -294,6 +328,13 @@ export default function AdminPage() {
         <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3.5 text-center">
           <div className="text-xl font-bold text-cyan-400">{users.filter(u => u.industry).length}</div>
           <div className="text-[10px] text-gray-500 uppercase font-medium mt-0.5">Z branżą</div>
+        </div>
+        <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3.5 text-center">
+          <div className="flex items-center justify-center gap-1">
+            <Monitor size={14} className="text-red-400" />
+            <span className="text-xl font-bold text-red-400">{users.filter(u => resolveAccessTier(u).isDemo).length}</span>
+          </div>
+          <div className="text-[10px] text-gray-500 uppercase font-medium mt-0.5">Demo</div>
         </div>
       </div>
 
@@ -320,6 +361,7 @@ export default function AdminPage() {
             <option value="granted">Aktywny</option>
             <option value="pending">Oczekujący</option>
             <option value="none">Brak</option>
+            <option value="demo">Demo</option>
           </select>
           <select
             title="Filtruj rolę"
@@ -415,11 +457,15 @@ export default function AdminPage() {
                     })()}
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                      u.status === "granted" ? "bg-green-500/10 text-green-400" : u.status === "pending" ? "bg-yellow-500/10 text-yellow-400" : "bg-red-500/10 text-red-400"
-                    }`}>
-                      {u.status === "granted" ? <><CheckCircle size={10} /> Aktywny</> : u.status === "pending" ? <><Clock size={10} /> Oczekujący</> : <><XCircle size={10} /> {u.status || "Brak"}</>}
-                    </span>
+                    {(() => {
+                      const tier = resolveAccessTier(u);
+                      return (
+                        <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${tier.cls}`}>
+                          {tier.isDemo && <AlertTriangle size={9} />}
+                          {tier.label}
+                        </span>
+                      );
+                    })()}
                   </td>
                   <td className="px-4 py-3">
                     {u.industry ? (
@@ -445,19 +491,25 @@ export default function AdminPage() {
                       <Link href={`/admin/users/${u.id}`} className="inline-flex items-center gap-1 rounded-lg bg-white/5 px-2.5 py-1.5 text-[11px] font-medium text-gray-300 transition-colors hover:bg-white/10 hover:text-white">
                         <Eye size={12} /> Profil
                       </Link>
-                      {isAdmin && u.status !== "granted" && (
-                        <div className="flex items-center gap-1">
-                          <select title="Pakiet" value={selectedPackage[u.id] || "basic"} onChange={(e) => setSelectedPackage((p) => ({ ...p, [u.id]: e.target.value }))}
-                            className="appearance-none rounded-lg border border-white/10 bg-[#0a0a0a] px-1.5 py-1.5 text-[11px] text-gray-300 outline-none">
-                            <option value="basic">Basic</option>
-                            <option value="pro">Pro</option>
-                            <option value="premium">Premium</option>
-                          </select>
-                          <button onClick={() => generateCode(u.id)} disabled={generating === u.id}
-                            className="inline-flex items-center gap-1 rounded-lg bg-blue-600/20 px-2.5 py-1.5 text-[11px] font-medium text-blue-400 transition-colors hover:bg-blue-600/30 disabled:opacity-50">
-                            <KeyRound size={12} />{generating === u.id ? "..." : "Kod"}
+                      {isAdmin && u.status !== "granted" && u.role !== "admin" && (
+                        <>
+                          <div className="flex items-center gap-1">
+                            <select title="Pakiet" value={selectedPackage[u.id] || "basic"} onChange={(e) => setSelectedPackage((p) => ({ ...p, [u.id]: e.target.value }))}
+                              className="appearance-none rounded-lg border border-white/10 bg-[#0a0a0a] px-1.5 py-1.5 text-[11px] text-gray-300 outline-none">
+                              <option value="basic">Basic</option>
+                              <option value="pro">Pro</option>
+                              <option value="premium">Premium</option>
+                            </select>
+                            <button onClick={() => generateCode(u.id)} disabled={generating === u.id}
+                              className="inline-flex items-center gap-1 rounded-lg bg-blue-600/20 px-2.5 py-1.5 text-[11px] font-medium text-blue-400 transition-colors hover:bg-blue-600/30 disabled:opacity-50">
+                              <KeyRound size={12} />{generating === u.id ? "..." : "Kod"}
+                            </button>
+                          </div>
+                          <button onClick={() => quickGrant(u.id, selectedPackage[u.id] || "pro")} disabled={quickGranting === u.id}
+                            className="inline-flex items-center gap-1 rounded-lg bg-green-600/20 px-2 py-1.5 text-[11px] font-medium text-green-400 transition-colors hover:bg-green-600/30 disabled:opacity-50">
+                            <Unlock size={11} />{quickGranting === u.id ? "..." : "Grant"}
                           </button>
-                        </div>
+                        </>
                       )}
                     </div>
                   </td>

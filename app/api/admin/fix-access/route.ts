@@ -9,7 +9,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { action } = await req.json();
+  const body = await req.json();
+  const { action, userId, packageType } = body;
   const sql = getSql();
 
   if (action === "ensure-rows") {
@@ -36,6 +37,20 @@ export async function POST(req: NextRequest) {
     `;
 
     return NextResponse.json({ ok: true, message: "All non-admin users reset to demo mode" });
+  }
+
+  if (action === "grant-single") {
+    if (!userId) return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+    const pkg = packageType || "pro";
+
+    await sql`
+      INSERT INTO training_access (user_id, status, granted_scope, package_type, source, granted_at, updated_at)
+      VALUES (${userId}::uuid, 'granted', 'all', ${pkg}, 'admin_quick_grant', NOW(), NOW())
+      ON CONFLICT (user_id) DO UPDATE
+      SET status = 'granted', granted_scope = 'all', package_type = ${pkg}, source = 'admin_quick_grant', granted_at = NOW(), updated_at = NOW()
+    `;
+
+    return NextResponse.json({ ok: true, message: `User ${userId} granted ${pkg} access` });
   }
 
   if (action === "grant-all-access") {
