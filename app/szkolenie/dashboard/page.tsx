@@ -47,7 +47,7 @@ const tiles: Tile[] = [
     title: "Narzędzia",
     desc: "PROMPTLY, Helply i więcej",
     icon: Wrench,
-    href: "/szkolenie/promptly",
+    href: "/szkolenie/narzedzia",
     color: "from-emerald-500 to-teal-500",
     bgGlow: "bg-emerald-500/20",
   },
