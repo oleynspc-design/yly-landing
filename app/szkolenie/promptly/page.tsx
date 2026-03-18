@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Send,
   Loader2,
@@ -41,6 +41,7 @@ export default function PromptlyPage() {
   const [industry, setIndustry] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [savedToLib, setSavedToLib] = useState<string | null>(null);
+  const [autoSaved, setAutoSaved] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -89,6 +90,8 @@ export default function PromptlyPage() {
       const data = await res.json();
       if (data.reply) {
         setMessages([...newMessages, { role: "assistant", content: data.reply }]);
+        // Auto-save code blocks (prompts) to library
+        autoSavePrompts(data.reply);
       } else {
         setMessages([...newMessages, { role: "assistant", content: "Przepraszam, wystąpił błąd. Spróbuj ponownie." }]);
       }
@@ -97,6 +100,35 @@ export default function PromptlyPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const autoSavePrompts = async (reply: string) => {
+    const codeBlockRegex = /```[\s\S]*?```/g;
+    let match;
+    const blocks: string[] = [];
+    while ((match = codeBlockRegex.exec(reply)) !== null) {
+      const code = match[0].replace(/^```\w*\n?/, "").replace(/\n?```$/, "").trim();
+      if (code.length > 20) blocks.push(code);
+    }
+    if (blocks.length === 0) return;
+    try {
+      for (const block of blocks) {
+        const title = block.length > 60 ? block.slice(0, 60) + "..." : block;
+        await fetch("/api/prompts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: `PROMPTLY: ${title}`,
+            content: block,
+            category: "general",
+            isPublic: false,
+            source: "promptly",
+          }),
+        });
+      }
+      setAutoSaved(true);
+      setTimeout(() => setAutoSaved(false), 4000);
+    } catch {}
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -363,9 +395,24 @@ export default function PromptlyPage() {
               {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
             </button>
           </div>
-          <p className="text-[10px] text-gray-600 mt-2 text-center">
-            PROMPTLY używa AI do generowania rekomendacji. Zawsze weryfikuj wyniki.
-          </p>
+          <div className="flex items-center justify-center gap-3 mt-2">
+            <p className="text-[10px] text-gray-600 text-center">
+              PROMPTLY używa AI do generowania rekomendacji. Zawsze weryfikuj wyniki.
+            </p>
+            <AnimatePresence>
+              {autoSaved && (
+                <motion.div
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -5 }}
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20"
+                >
+                  <CheckCircle size={10} className="text-emerald-400" />
+                  <span className="text-[10px] text-emerald-400 font-medium">Auto-zapisano do biblioteki</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     </main>

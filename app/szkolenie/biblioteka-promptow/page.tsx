@@ -17,6 +17,8 @@ import {
   Trash2,
   Edit3,
   Share2,
+  Wand2,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -59,6 +61,7 @@ export default function PromptLibraryPage() {
   const [newIsPublic, setNewIsPublic] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [enhancing, setEnhancing] = useState(false);
 
   useEffect(() => {
     fetchPrompts();
@@ -163,6 +166,28 @@ export default function PromptLibraryPage() {
     window.open("/szkolenie/promptly", "_blank");
   };
 
+  const handleEnhanceWithAI = async () => {
+    if (!newContent.trim() || enhancing) return;
+    setEnhancing(true);
+    try {
+      const res = await fetch("/api/prompts/enhance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: newContent }),
+      });
+      const data = await res.json();
+      if (data.enhanced) {
+        setNewContent(data.enhanced);
+        if (!newTitle.trim()) {
+          const autoTitle = data.enhanced.length > 60 ? data.enhanced.slice(0, 60) + "..." : data.enhanced;
+          setNewTitle(autoTitle);
+        }
+      }
+    } catch {} finally {
+      setEnhancing(false);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[#080808]">
       {/* Header */}
@@ -263,13 +288,24 @@ export default function PromptLibraryPage() {
                 placeholder="Tytuł promptu..."
                 className="w-full mb-3 px-4 py-2 rounded-lg bg-[#0a0a0a] border border-white/10 text-sm text-white placeholder:text-gray-600 outline-none focus:border-amber-500/50"
               />
-              <textarea
-                value={newContent}
-                onChange={(e) => setNewContent(e.target.value)}
-                placeholder="Treść promptu..."
-                rows={6}
-                className="w-full mb-3 px-4 py-3 rounded-lg bg-[#0a0a0a] border border-white/10 text-sm text-white font-mono placeholder:text-gray-600 outline-none focus:border-amber-500/50 resize-none"
-              />
+              <div className="relative mb-3">
+                <textarea
+                  value={newContent}
+                  onChange={(e) => setNewContent(e.target.value)}
+                  placeholder="Wpisz treść promptu lub opis tego co chcesz — AI to ulepszy..."
+                  rows={6}
+                  className="w-full px-4 py-3 rounded-lg bg-[#0a0a0a] border border-white/10 text-sm text-white font-mono placeholder:text-gray-600 outline-none focus:border-amber-500/50 resize-none"
+                />
+                <button
+                  onClick={handleEnhanceWithAI}
+                  disabled={enhancing || !newContent.trim()}
+                  className="absolute top-2 right-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-600/80 to-pink-600/80 hover:from-purple-500 hover:to-pink-500 text-white text-xs font-bold disabled:opacity-30 transition-all shadow-lg shadow-purple-500/10"
+                  title="Ulepsz przez AI"
+                >
+                  {enhancing ? <Loader2 size={12} className="animate-spin" /> : <Wand2 size={12} />}
+                  {enhancing ? "Ulepszam..." : "Ulepsz przez AI"}
+                </button>
+              </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <select

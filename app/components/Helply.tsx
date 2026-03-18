@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MessageCircle,
@@ -15,6 +15,8 @@ import {
   Copy,
   Check,
   Minimize2,
+  BookmarkPlus,
+  CheckCircle,
 } from "lucide-react";
 
 interface Message {
@@ -42,8 +44,25 @@ export default function Helply({ moduleSlug, moduleName, currentLesson, lessonNo
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState<number | null>(null);
+  const [savedToLib, setSavedToLib] = useState<number | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Listen for open-helply custom event from other components
+  useEffect(() => {
+    const handleOpenHelply = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      setOpen(true);
+      if (detail?.notes && detail?.action === "notes-to-prompt") {
+        setTimeout(() => {
+          sendMessage(`Przekształć te notatki w profesjonalny prompt:\n\n${detail.notes}`, "notes-to-prompt");
+        }, 300);
+      }
+    };
+    window.addEventListener("open-helply", handleOpenHelply);
+    return () => window.removeEventListener("open-helply", handleOpenHelply);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages, loading]);
 
   useEffect(() => {
     if (open) {
@@ -105,9 +124,27 @@ export default function Helply({ moduleSlug, moduleName, currentLesson, lessonNo
   };
 
   const handleSendToPromptly = (content: string) => {
-    // Save to sessionStorage for PROMPTLY to pick up
     sessionStorage.setItem("helply_to_promptly", content);
     window.open("/szkolenie/promptly", "_blank");
+  };
+
+  const saveToLibrary = async (content: string, idx: number) => {
+    try {
+      const title = content.length > 60 ? content.slice(0, 60) + "..." : content;
+      await fetch("/api/prompts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: `Helply: ${title}`,
+          content,
+          category: "general",
+          isPublic: false,
+          source: "helply",
+        }),
+      });
+      setSavedToLib(idx);
+      setTimeout(() => setSavedToLib(null), 3000);
+    } catch {}
   };
 
   const copyText = (text: string, idx: number) => {
@@ -151,6 +188,13 @@ export default function Helply({ moduleSlug, moduleName, currentLesson, lessonNo
                 {copied === i ? "Skopiowano" : "Kopiuj"}
               </button>
               <button
+                onClick={() => saveToLibrary(msg.content, i)}
+                className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-gray-500 hover:text-amber-300 hover:bg-amber-500/10 transition-colors"
+              >
+                {savedToLib === i ? <CheckCircle size={10} className="text-green-400" /> : <BookmarkPlus size={10} />}
+                {savedToLib === i ? "Zapisano!" : "Biblioteka"}
+              </button>
+              <button
                 onClick={() => handleSendToPromptly(msg.content)}
                 className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] text-gray-500 hover:text-purple-300 hover:bg-purple-500/10 transition-colors"
               >
@@ -166,20 +210,75 @@ export default function Helply({ moduleSlug, moduleName, currentLesson, lessonNo
 
   return (
     <>
-      {/* Floating button */}
+      {/* Floating Messenger-style animated button */}
       <AnimatePresence>
         {!open && (
           <motion.button
             initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
+            animate={{
+              scale: 1,
+              opacity: 1,
+              y: [0, -6, 0],
+            }}
             exit={{ scale: 0, opacity: 0 }}
+            transition={{
+              scale: { type: "spring", stiffness: 400, damping: 15 },
+              y: { repeat: Infinity, duration: 2.5, ease: "easeInOut" },
+            }}
             onClick={() => setOpen(true)}
-            className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-500 shadow-lg shadow-emerald-500/25 flex items-center justify-center hover:shadow-xl hover:shadow-emerald-500/30 transition-shadow group"
+            className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-500 shadow-lg shadow-emerald-500/25 flex items-center justify-center hover:shadow-xl hover:shadow-emerald-500/40 transition-shadow group cursor-pointer"
           >
-            <MessageCircle size={24} className="text-white" />
-            <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 border-2 border-[#080808] flex items-center justify-center">
-              <span className="text-[8px] font-bold text-white">AI</span>
+            {/* Breathing pulse ring */}
+            <motion.div
+              className="absolute inset-0 rounded-full bg-emerald-400/20"
+              animate={{
+                scale: [1, 1.5, 1],
+                opacity: [0.5, 0, 0.5],
+              }}
+              transition={{
+                repeat: Infinity,
+                duration: 2.5,
+                ease: "easeInOut",
+              }}
+            />
+            {/* Second pulse ring (offset) */}
+            <motion.div
+              className="absolute inset-0 rounded-full bg-cyan-400/15"
+              animate={{
+                scale: [1, 1.8, 1],
+                opacity: [0.3, 0, 0.3],
+              }}
+              transition={{
+                repeat: Infinity,
+                duration: 2.5,
+                ease: "easeInOut",
+                delay: 0.5,
+              }}
+            />
+            <motion.div
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+            >
+              <MessageCircle size={24} className="text-white" />
+            </motion.div>
+            <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 border-2 border-[#080808] flex items-center justify-center">
+              <motion.span
+                className="text-[8px] font-bold text-white"
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ repeat: Infinity, duration: 1.5 }}
+              >
+                AI
+              </motion.span>
             </div>
+            {/* Tooltip */}
+            <motion.div
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: [0, 1, 1, 0], x: [10, 0, 0, -5] }}
+              transition={{ repeat: Infinity, duration: 5, times: [0, 0.1, 0.7, 1], repeatDelay: 8 }}
+              className="absolute right-16 whitespace-nowrap bg-[#111] border border-white/10 text-white text-xs px-3 py-1.5 rounded-lg shadow-xl pointer-events-none"
+            >
+              Zapytaj Helply!
+            </motion.div>
           </motion.button>
         )}
       </AnimatePresence>
