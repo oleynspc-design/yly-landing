@@ -22,7 +22,7 @@ import {
 import { lessons, semesters } from "./lessons";
 import type { ContentBlock } from "./lessons";
 import { quizQuestions } from "./quiz";
-import { useAccess, isLessonLocked, LessonLockOverlay } from "@/app/components/DemoGate";
+import { useAccess, isLessonLocked, isSemesterLocked, LessonLockOverlay } from "@/app/components/DemoGate";
 import { NotesPanel, HomeworkPanel, ProgressTracker, useSaveProgress } from "@/app/components/TrainingFeatures";
 import { HOMEWORK } from "@/lib/homework";
 
@@ -38,7 +38,8 @@ export default function PodstawyPromptinguPage() {
   const contentRef = useRef<HTMLDivElement>(null);
   const [showLock, setShowLock] = useState(false);
   const [lessonNotes, setLessonNotes] = useState("");
-  const { hasFullAccess } = useAccess();
+  const { hasFullAccess, accessTier } = useAccess();
+  const MODULE_ID = "podstawy-promptingu";
   const { saveProgress } = useSaveProgress("podstawy-promptingu");
   const homeworkTasks = HOMEWORK["podstawy-promptingu"] || [];
 
@@ -47,7 +48,7 @@ export default function PodstawyPromptinguPage() {
   const progress = view === "lesson" ? ((currentLesson + 1) / lessons.length) * 100 : 0;
 
   const startLesson = (index: number) => {
-    if (isLessonLocked(index, hasFullAccess)) { setShowLock(true); return; }
+    if (isLessonLocked(index, hasFullAccess, MODULE_ID, accessTier)) { setShowLock(true); return; }
     setCurrentLesson(index);
     setView("lesson");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -60,14 +61,14 @@ export default function PodstawyPromptinguPage() {
     }
     const nextIndex = currentLesson + 1;
     if (nextIndex < lessons.length) {
-      if (isLessonLocked(nextIndex, hasFullAccess)) {
+      if (isLessonLocked(nextIndex, hasFullAccess, MODULE_ID, accessTier)) {
         setShowLock(true);
         return;
       }
       setCurrentLesson(nextIndex);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
-      if (!hasFullAccess) { setShowLock(true); return; }
+      if (isLessonLocked(lessons.length - 1, hasFullAccess, MODULE_ID, accessTier)) { setShowLock(true); return; }
       setCompletedLessons([...new Set([...completedLessons, currentLesson])]);
       setView("quiz");
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -222,7 +223,7 @@ export default function PodstawyPromptinguPage() {
           </motion.div>
 
           {semesters.map((sem, si) => {
-            const semLocked = !hasFullAccess && sem.id > 1;
+            const semLocked = isSemesterLocked(sem.id, hasFullAccess, MODULE_ID, accessTier);
             return (
             <motion.div key={sem.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: si * 0.1 }} className="mb-10 relative">
               <div className="flex items-center gap-3 mb-4">

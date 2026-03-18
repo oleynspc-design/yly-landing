@@ -3,19 +3,55 @@ import { useState, useEffect, createContext, useContext } from "react";
 import { Lock } from "lucide-react";
 import Link from "next/link";
 
+// ────────────────────────────────────────────────
+// Access tiers:
+//   "demo"    → only semester 1 of podstawy-promptingu, everything else locked
+//   "basic"   → full podstawy-promptingu, semester 1 of other modules
+//   "pro"     → all modules full access
+//   "premium" → all modules full access + meetings
+//   "admin"   → everything
+// ────────────────────────────────────────────────
+
+export type AccessTier = "demo" | "basic" | "pro" | "premium" | "admin";
+
 interface AccessInfo {
   hasFullAccess: boolean;
+  accessTier: AccessTier;
+  packageType: string;
+  role: string;
   loading: boolean;
 }
 
-const AccessContext = createContext<AccessInfo>({ hasFullAccess: false, loading: true });
+const AccessContext = createContext<AccessInfo>({
+  hasFullAccess: false,
+  accessTier: "demo",
+  packageType: "demo",
+  role: "user",
+  loading: true,
+});
 
 export function useAccess() {
   return useContext(AccessContext);
 }
 
+function resolveAccessTier(role: string, accessStatus: string, accessScope: string, packageType: string): AccessTier {
+  if (role === "admin") return "admin";
+  if (accessStatus === "granted" && accessScope === "all") {
+    if (packageType === "premium") return "premium";
+    if (packageType === "pro") return "pro";
+    if (packageType === "basic") return "basic";
+    // granted + all but no specific package → full access (pro level)
+    return "pro";
+  }
+  // Any granted status but not scope=all → basic
+  if (accessStatus === "granted") return "basic";
+  return "demo";
+}
+
 export function AccessProvider({ children }: { children: React.ReactNode }) {
-  const [hasFullAccess, setHasFullAccess] = useState(false);
+  const [accessTier, setAccessTier] = useState<AccessTier>("demo");
+  const [packageType, setPackageType] = useState("demo");
+  const [role, setRole] = useState("user");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,33 +60,76 @@ export function AccessProvider({ children }: { children: React.ReactNode }) {
       .then((data) => {
         if (data.user) {
           const u = data.user;
-          setHasFullAccess(
-            u.role === "admin" || (u.trainingAccessStatus === "granted" && u.trainingAccessScope === "all")
+          const tier = resolveAccessTier(
+            u.role,
+            u.trainingAccessStatus || "pending",
+            u.trainingAccessScope || "none",
+            u.packageType || "demo"
           );
+          setAccessTier(tier);
+          setPackageType(u.packageType || "demo");
+          setRole(u.role || "user");
         }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
+  const hasFullAccess = accessTier === "admin" || accessTier === "pro" || accessTier === "premium";
+
   return (
-    <AccessContext.Provider value={{ hasFullAccess, loading }}>
+    <AccessContext.Provider value={{ hasFullAccess, accessTier, packageType, role, loading }}>
       {children}
     </AccessContext.Provider>
   );
 }
 
-// Demo users have access to Semester 1 (lessons 0, 1, 2) in ALL modules
-export function isLessonLocked(lessonIndex: number, hasFullAccess: boolean): boolean {
-  if (hasFullAccess) return false;
-  return lessonIndex > 2; // Semester 1 = lessons 0, 1, 2
+// ────────────────────────────────────────────────
+// Module-aware access checks
+// ────────────────────────────────────────────────
+
+// Whether a user can access a module at all (even partially)
+export function isModuleAccessible(moduleId: string, accessTier: AccessTier): boolean {
+  if (accessTier === "admin" || accessTier === "pro" || accessTier === "premium") return true;
+  if (accessTier === "basic") return true; // basic has sem1 of every module + full podstawy
+  // demo → only podstawy-promptingu
+  return moduleId === "podstawy-promptingu";
 }
 
-// Check if a semester is locked for demo users
-export function isSemesterLocked(semesterId: number, hasFullAccess: boolean): boolean {
-  if (hasFullAccess) return false;
+// Whether a specific lesson is locked in a given module
+export function isLessonLocked(lessonIndex: number, hasFullAccess: boolean, moduleId?: string, accessTier?: AccessTier): boolean {
+  const tier = accessTier ?? (hasFullAccess ? "admin" : "demo");
+  if (tier === "admin" || tier === "pro" || tier === "premium") return false;
+
+  if (tier === "basic") {
+    // basic: full access to podstawy-promptingu, sem1 (lessons 0-2) for others
+    if (moduleId === "podstawy-promptingu") return false;
+    return lessonIndex > 2;
+  }
+
+  // demo: only sem1 of podstawy-promptingu
+  if (moduleId !== "podstawy-promptingu") return true; // all lessons locked in other modules
+  return lessonIndex > 2;
+}
+
+// Whether a semester is locked in a given module
+export function isSemesterLocked(semesterId: number, hasFullAccess: boolean, moduleId?: string, accessTier?: AccessTier): boolean {
+  const tier = accessTier ?? (hasFullAccess ? "admin" : "demo");
+  if (tier === "admin" || tier === "pro" || tier === "premium") return false;
+
+  if (tier === "basic") {
+    if (moduleId === "podstawy-promptingu") return false;
+    return semesterId > 1;
+  }
+
+  // demo
+  if (moduleId !== "podstawy-promptingu") return true;
   return semesterId > 1;
 }
+
+// ────────────────────────────────────────────────
+// Overlay components
+// ────────────────────────────────────────────────
 
 export function ModuleLockOverlay() {
   return (
