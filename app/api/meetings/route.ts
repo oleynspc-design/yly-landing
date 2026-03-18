@@ -68,12 +68,28 @@ export async function GET() {
       } catch { /* column might not exist */ }
     }
 
+    // Return user list for admin to pick employee when booking
+    let userList: { id: string; full_name: string; email: string }[] = [];
+    if (isAdmin) {
+      const userRows = (await sql`
+        SELECT u.id::text, u.full_name, u.email
+        FROM users u
+        ORDER BY u.full_name ASC
+      `) as Row[];
+      userList = userRows.map((r) => ({
+        id: r.id as string,
+        full_name: r.full_name as string,
+        email: r.email as string,
+      }));
+    }
+
     return NextResponse.json({
       meetings,
       credits,
       packageType,
       role: user.role,
       allBooked: allBooked.map((r) => r.scheduled_at),
+      ...(isAdmin ? { userList } : {}),
     });
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Błąd serwera";
@@ -88,7 +104,7 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: "Brak autoryzacji" }, { status: 401 });
 
     const sql = getSql();
-    const { scheduledAt, notes } = await req.json();
+    const { scheduledAt, notes, userId: targetUserId } = await req.json();
     const isAdmin = user.role === "admin";
 
     if (!scheduledAt) {
@@ -126,13 +142,16 @@ export async function POST(req: NextRequest) {
     const admins = (await sql`SELECT id::text FROM users WHERE role = 'admin' LIMIT 1`) as Row[];
     const adminId = (admins[0]?.id as string) ?? null;
 
+    // Determine the meeting participant
+    const meetingUserId = isAdmin && targetUserId ? targetUserId : user.id;
+
     // Book the meeting
     await sql`
       INSERT INTO meetings (user_id, admin_id, scheduled_at, duration_minutes, notes)
-      VALUES (${user.id}::uuid, ${adminId}::uuid, ${dateObj.toISOString()}::timestamptz, 90, ${notes || null})
+      VALUES (${meetingUserId}::uuid, ${adminId}::uuid, ${dateObj.toISOString()}::timestamptz, 90, ${notes || null})
     `;
 
-    // Decrement credits (not for admin)
+    // Decrement credits (not for admin, and not when admin books on behalf)
     if (!isAdmin) {
       await sql`
         UPDATE meeting_credits SET used = used + 1, updated_at = NOW()

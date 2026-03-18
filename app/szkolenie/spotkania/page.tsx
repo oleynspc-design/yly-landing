@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Calendar, Clock, Video, ChevronLeft, ChevronRight, Loader2, CheckCircle, ShoppingCart, Shield, User, Mail, FileText } from "lucide-react";
+import { Calendar, Clock, Video, ChevronLeft, ChevronRight, Loader2, CheckCircle, ShoppingCart, Shield, User, Mail, FileText, Search, Users } from "lucide-react";
 import Link from "next/link";
 
 interface Meeting {
@@ -15,12 +15,19 @@ interface Meeting {
   user_email?: string | null;
 }
 
+interface UserOption {
+  id: string;
+  full_name: string;
+  email: string;
+}
+
 interface MeetingData {
   meetings: Meeting[];
   credits: { total: number; used: number; remaining: number };
   packageType: string;
   role: string;
   allBooked: string[];
+  userList?: UserOption[];
 }
 
 const HOURS = [9, 10, 11, 12, 13, 14, 15, 16, 17];
@@ -47,6 +54,8 @@ export default function MeetingsPage() {
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [bookedSlots, setBookedSlots] = useState<Set<string>>(new Set());
+  const [selectedUserId, setSelectedUserId] = useState<string>("");
+  const [userSearch, setUserSearch] = useState("");
 
   const baseDate = new Date();
   baseDate.setDate(baseDate.getDate() + weekOffset * 7);
@@ -81,7 +90,11 @@ export default function MeetingsPage() {
       const res = await fetch("/api/meetings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scheduledAt: selectedSlot, notes: notes.trim() || null }),
+        body: JSON.stringify({
+          scheduledAt: selectedSlot,
+          notes: notes.trim() || null,
+          ...(data?.role === "admin" && selectedUserId ? { userId: selectedUserId } : {}),
+        }),
       });
       const result = await res.json();
       if (!res.ok) throw new Error(result.error);
@@ -346,6 +359,61 @@ export default function MeetingsPage() {
                   Potwierdzenie: {new Date(selectedSlot).toLocaleDateString("pl-PL", { weekday: "long", day: "numeric", month: "long" })} o {new Date(selectedSlot).toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })}
                 </h3>
                 <p className="text-xs text-gray-500 mb-3">Czas trwania: 1.5h | Spotkanie online z Patrykiem</p>
+
+                {/* Admin: Employee selection */}
+                {isAdmin && data?.userList && data.userList.length > 0 && (
+                  <div className="mb-4">
+                    <label htmlFor="employee-select" className="flex items-center gap-1.5 text-xs text-gray-400 mb-2">
+                      <Users size={12} /> Wybierz uczestnika spotkania
+                    </label>
+                    <div className="relative mb-2">
+                      <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600" />
+                      <input
+                        type="text"
+                        value={userSearch}
+                        onChange={(e) => setUserSearch(e.target.value)}
+                        placeholder="Szukaj po nazwisku lub emailu..."
+                        className="w-full pl-9 pr-3 py-2 rounded-lg bg-[#0a0a0a] border border-white/10 text-sm text-white placeholder:text-gray-600 outline-none focus:border-blue-500/50"
+                      />
+                    </div>
+                    <div className="max-h-40 overflow-y-auto rounded-lg border border-white/10 bg-[#0a0a0a] divide-y divide-white/5">
+                      {data.userList
+                        .filter((u) => {
+                          if (!userSearch.trim()) return true;
+                          const q = userSearch.toLowerCase();
+                          return u.full_name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+                        })
+                        .slice(0, 20)
+                        .map((u) => (
+                          <button
+                            key={u.id}
+                            type="button"
+                            onClick={() => setSelectedUserId(u.id === selectedUserId ? "" : u.id)}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors ${
+                              selectedUserId === u.id
+                                ? "bg-blue-600/10 border-l-2 border-blue-500"
+                                : "hover:bg-white/5 border-l-2 border-transparent"
+                            }`}
+                          >
+                            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/5 text-xs font-bold text-gray-400 flex-shrink-0">
+                              {u.full_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="text-sm font-medium text-white truncate">{u.full_name}</div>
+                              <div className="text-[11px] text-gray-500 truncate">{u.email}</div>
+                            </div>
+                            {selectedUserId === u.id && <CheckCircle size={14} className="text-blue-400 flex-shrink-0" />}
+                          </button>
+                        ))}
+                    </div>
+                    {selectedUserId && (
+                      <div className="mt-2 text-xs text-blue-400">
+                        Wybrano: {data.userList.find((u) => u.id === selectedUserId)?.full_name || "—"}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <label htmlFor="meeting-notes" className="block text-xs text-gray-400 mb-1">Notatka (opcjonalna)</label>
                 <textarea
                   id="meeting-notes"
