@@ -129,7 +129,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
         return;
       }
 
-      window.location.href = data.redirectTo || "/szkolenie";
+      window.location.href = data.redirectTo || "/dashboard";
     } catch {
       setError(copy.genericError);
     } finally {
