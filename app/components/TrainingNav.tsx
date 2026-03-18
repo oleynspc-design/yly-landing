@@ -74,7 +74,7 @@ export default function TrainingNav() {
           </Link>
           <div className="hidden sm:flex items-center gap-1 text-sm">
             <Link
-              href="/szkolenie/dashboard"
+              href="/dashboard"
               className="rounded-lg px-3 py-1.5 text-gray-400 transition-colors hover:bg-white/5 hover:text-white"
             >
               Dashboard
@@ -250,7 +250,7 @@ export default function TrainingNav() {
         <div className="sm:hidden border-t border-white/10 bg-[#0a0a0a]">
           <div className="px-4 py-3 space-y-1">
             <Link
-              href="/szkolenie/dashboard"
+              href="/dashboard"
               onClick={() => setMobileMenuOpen(false)}
               className="block rounded-lg px-3 py-2 text-base font-medium text-gray-300 hover:bg-white/5 hover:text-white"
             >

@@ -93,7 +93,7 @@ export default function NarzedziaPage() {
           className="mb-8"
         >
           <Link
-            href="/szkolenie/dashboard"
+            href="/dashboard"
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all text-sm mb-6"
           >
             <ArrowLeft size={14} />

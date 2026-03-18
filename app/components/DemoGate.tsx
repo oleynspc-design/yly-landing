@@ -8,14 +8,14 @@ interface AccessInfo {
   loading: boolean;
 }
 
-const AccessContext = createContext<AccessInfo>({ hasFullAccess: true, loading: true });
+const AccessContext = createContext<AccessInfo>({ hasFullAccess: false, loading: true });
 
 export function useAccess() {
   return useContext(AccessContext);
 }
 
 export function AccessProvider({ children }: { children: React.ReactNode }) {
-  const [hasFullAccess, setHasFullAccess] = useState(true);
+  const [hasFullAccess, setHasFullAccess] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -63,8 +63,8 @@ export function LessonLockOverlay() {
           Odblokuj pełny dostęp
         </Link>
         <div className="mt-4">
-          <Link href="/szkolenie" className="text-sm text-gray-500 hover:text-gray-300 transition-colors">
-            Wróć do panelu szkoleniowego
+          <Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-300 transition-colors">
+            Wróć do dashboardu
           </Link>
         </div>
       </div>

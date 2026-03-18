@@ -107,7 +107,7 @@ export async function sendOrderConfirmationEmail(
       <p style="color: #a3a3a3;">Dostęp do treści został automatycznie aktywowany na Twoim koncie.</p>
       `}
 
-      <a href="https://yly.com.pl/szkolenie" style="display: inline-block; background: #2563eb; color: white; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 16px;">Przejdź do szkolenia →</a>
+      <a href="https://yly.com.pl/dashboard" style="display: inline-block; background: #2563eb; color: white; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 16px;">Przejdź do szkolenia →</a>
     </div>
     <div style="padding: 20px 32px; border-top: 1px solid rgba(255,255,255,0.05); text-align: center;">
       <p style="color: #666; font-size: 12px; margin: 0;">Pytania? Napisz do nas: <a href="mailto:${SUPPORT_EMAIL}" style="color: #3b82f6;">${SUPPORT_EMAIL}</a></p>

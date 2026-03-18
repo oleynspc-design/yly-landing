@@ -67,7 +67,7 @@ export function isAuthConfigured() {
   return isDatabaseConfigured();
 }
 
-export function getSafeRedirectPath(value: unknown, fallback = "/szkolenie/dashboard") {
+export function getSafeRedirectPath(value: unknown, fallback = "/dashboard") {
   if (typeof value !== "string") {
     return fallback;
   }

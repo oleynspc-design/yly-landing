@@ -7,28 +7,28 @@ import { getCurrentUser, isAuthConfigured } from "@/lib/auth";
 
 export default async function RestrictedAccessPage() {
   if (!isAuthConfigured()) {
-    redirect("/logowanie?setup=1&next=/szkolenie");
+    redirect("/logowanie?setup=1&next=/dashboard");
   }
 
   const user = await getCurrentUser();
 
   if (!user) {
-    redirect("/logowanie?next=/szkolenie");
+    redirect("/logowanie?next=/dashboard");
   }
 
   if (user.trainingAccessStatus === "granted" && user.trainingAccessScope === "all") {
-    redirect("/szkolenie");
+    redirect("/dashboard");
   }
 
   // Show onboarding quiz first if not completed
   if (!user.onboardingDone) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#080808] px-4 py-16">
-        <OnboardingQuiz redirectTo="/szkolenie" />
+        <OnboardingQuiz redirectTo="/dashboard" />
       </main>
     );
   }
 
   // After onboarding, send to training demo mode
-  redirect("/szkolenie");
+  redirect("/dashboard");
 }

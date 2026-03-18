@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const email = getBodyValue(body.email).toLowerCase();
     const password = typeof body.password === "string" ? body.password : "";
-    const next = getSafeRedirectPath(body.next, "/szkolenie");
+    const next = getSafeRedirectPath(body.next, "/dashboard");
 
     if (!email || !password) {
       return NextResponse.json(

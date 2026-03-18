@@ -172,7 +172,7 @@ export default function ProfilePage() {
 
       setRedeemSuccess(true);
       setTimeout(() => {
-        router.push("/szkolenie/dashboard");
+        router.push("/dashboard");
         router.refresh();
       }, 1500);
     } catch (err: unknown) {

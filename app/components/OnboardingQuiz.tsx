@@ -82,7 +82,7 @@ interface OnboardingQuizProps {
   redirectTo?: string;
 }
 
-export default function OnboardingQuiz({ redirectTo = "/szkolenie" }: OnboardingQuizProps) {
+export default function OnboardingQuiz({ redirectTo = "/dashboard" }: OnboardingQuizProps) {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
