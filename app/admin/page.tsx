@@ -52,6 +52,8 @@ export default function AdminPage() {
   const [selectedPackage, setSelectedPackage] = useState<Record<string, string>>({});
   const [changingRole, setChangingRole] = useState<string | null>(null);
   const [currentAdmin, setCurrentAdmin] = useState<CurrentAdmin | null>(null);
+  const [fixingAccess, setFixingAccess] = useState(false);
+  const [fixMessage, setFixMessage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -119,6 +121,29 @@ export default function AdminPage() {
 
   const isAdmin = currentAdmin?.role === "admin";
 
+  const fixAccess = async (action: string) => {
+    setFixingAccess(true);
+    setFixMessage(null);
+    try {
+      const res = await fetch("/api/admin/fix-access", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setFixMessage(data.message);
+        await fetchUsers();
+      } else {
+        setFixMessage(data.error || "Błąd");
+      }
+    } catch {
+      setFixMessage("Błąd połączenia");
+    } finally {
+      setFixingAccess(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
@@ -135,6 +160,37 @@ export default function AdminPage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-white">Zarządzanie Użytkownikami</h1>
           <p className="text-sm text-gray-500 mt-1">{users.length} użytkowników w systemie</p>
         </div>
+      </div>
+
+      {/* Admin Tools */}
+      <div className="mb-8 p-4 rounded-xl border border-yellow-500/20 bg-yellow-500/5">
+        <h3 className="text-sm font-bold text-yellow-400 mb-3">🛠️ Narzędzia naprawcze dostępu</h3>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => fixAccess("ensure-rows")}
+            disabled={fixingAccess}
+            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-medium transition-all"
+          >
+            {fixingAccess ? "..." : "Utwórz brakujące rekordy (demo)"}
+          </button>
+          <button
+            onClick={() => fixAccess("reset-all-to-demo")}
+            disabled={fixingAccess}
+            className="px-4 py-2 rounded-lg bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white text-xs font-medium transition-all"
+          >
+            {fixingAccess ? "..." : "Resetuj wszystkich do demo"}
+          </button>
+          <button
+            onClick={() => fixAccess("grant-all-access")}
+            disabled={fixingAccess}
+            className="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white text-xs font-medium transition-all"
+          >
+            {fixingAccess ? "..." : "Nadaj wszystkim pełny dostęp"}
+          </button>
+        </div>
+        {fixMessage && (
+          <p className="mt-2 text-xs text-gray-400">{fixMessage}</p>
+        )}
       </div>
 
       {/* Stats */}
