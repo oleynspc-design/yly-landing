@@ -16,11 +16,12 @@ import {
   Copy,
   Layers,
   Gauge,
+  Lock,
 } from "lucide-react";
 import { lessons, semesters } from "./lessons";
 import type { ContentBlock } from "./lessons";
 import { quizQuestions } from "./quiz";
-import { useAccess, isLessonLocked, LessonLockOverlay, isModuleLocked, ModuleLockOverlay } from "@/app/components/DemoGate";
+import { useAccess, isLessonLocked, LessonLockOverlay, isSemesterLocked } from "@/app/components/DemoGate";
 import MicroQuiz from "@/app/components/MicroQuiz";
 import type { MicroQuizData } from "@/app/components/MicroQuiz";
 import { microQuizzes } from "./micro-quizzes";
@@ -40,12 +41,7 @@ export default function OptymalizacjaPracyPage() {
   const [showLock, setShowLock] = useState(false);
   const [activeMicroQuiz, setActiveMicroQuiz] = useState<MicroQuizData | null>(null);
   const [lessonNotes, setLessonNotes] = useState("");
-  const { hasFullAccess, loading } = useAccess();
-
-  // Block entire module for demo users
-  if (!loading && isModuleLocked("optymalizacja-pracy", hasFullAccess)) {
-    return <ModuleLockOverlay />;
-  }
+  const { hasFullAccess } = useAccess();
   const { saveProgress } = useSaveProgress("optymalizacja-pracy");
   const hwTasks = HOMEWORK["optymalizacja-pracy"] || [];
   const QUIZ_PER_PAGE = 10;
@@ -54,7 +50,7 @@ export default function OptymalizacjaPracyPage() {
   const PASS_SCORE = Math.ceil(quizQuestions.length * 0.8);
 
   const startLesson = (index: number) => { if (isLessonLocked(index, hasFullAccess)) { setShowLock(true); return; } setCurrentLesson(index); setView("lesson"); window.scrollTo({ top: 0, behavior: "smooth" }); };
-  const handleNext = () => { if (!completedLessons.includes(currentLesson)) { setCompletedLessons([...completedLessons, currentLesson]); saveProgress(currentLesson); } const mq = microQuizzes.find((q) => q.afterLesson === currentLesson); if (mq && !activeMicroQuiz) { setActiveMicroQuiz(mq); window.scrollTo({ top: 0, behavior: "smooth" }); return; } if (currentLesson < lessons.length - 1) { setCurrentLesson(currentLesson + 1); setActiveMicroQuiz(null); window.scrollTo({ top: 0, behavior: "smooth" }); } else { setCompletedLessons([...new Set([...completedLessons, currentLesson])]); setActiveMicroQuiz(null); setView("quiz"); window.scrollTo({ top: 0, behavior: "smooth" }); } };
+  const handleNext = () => { if (!completedLessons.includes(currentLesson)) { setCompletedLessons([...completedLessons, currentLesson]); saveProgress(currentLesson); } const mq = microQuizzes.find((q) => q.afterLesson === currentLesson); if (mq && !activeMicroQuiz) { setActiveMicroQuiz(mq); window.scrollTo({ top: 0, behavior: "smooth" }); return; } const nextIndex = currentLesson + 1; if (nextIndex < lessons.length) { if (isLessonLocked(nextIndex, hasFullAccess)) { setShowLock(true); return; } setCurrentLesson(nextIndex); setActiveMicroQuiz(null); window.scrollTo({ top: 0, behavior: "smooth" }); } else { if (!hasFullAccess) { setShowLock(true); return; } setCompletedLessons([...new Set([...completedLessons, currentLesson])]); setActiveMicroQuiz(null); setView("quiz"); window.scrollTo({ top: 0, behavior: "smooth" }); } };
   const handlePrev = () => { if (currentLesson > 0) { setCurrentLesson(currentLesson - 1); window.scrollTo({ top: 0, behavior: "smooth" }); } };
   const handleAnswer = (qi: number, ai: number) => { const a = [...quizAnswers]; a[qi] = ai; setQuizAnswers(a); };
   const copyToClipboard = (text: string) => { navigator.clipboard.writeText(text); };
@@ -96,9 +92,34 @@ export default function OptymalizacjaPracyPage() {
               </div>
             )}
           </motion.div>
-          {semesters.map((sem, si) => (
-            <motion.div key={sem.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: si * 0.1 }} className="mb-10">
-              <div className="flex items-center gap-3 mb-4"><Layers size={20} className="text-cyan-400" /><h2 className="text-xl font-bold text-white">{sem.name}</h2></div>
+          {semesters.map((sem, si) => {
+            const semLocked = isSemesterLocked(sem.id, hasFullAccess);
+            return (
+            <motion.div key={sem.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: si * 0.1 }} className="mb-10 relative">
+              <div className="flex items-center gap-3 mb-4">
+                <Layers size={20} className={semLocked ? "text-gray-600" : "text-cyan-400"} />
+                <h2 className={`text-xl font-bold ${semLocked ? "text-gray-600" : "text-white"}`}>{sem.name}</h2>
+                {semLocked && <span className="px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[10px] font-bold">PREMIUM</span>}
+              </div>
+              {semLocked ? (
+                <div className="relative">
+                  <div className="space-y-3 blur-[6px] pointer-events-none select-none">
+                    {sem.lessons.map((li) => { const lesson = lessons[li]; if (!lesson) return null; return (
+                      <div key={li} className="w-full text-left p-5 rounded-xl border bg-[#0f0f0f] border-white/5">
+                        <div className="flex items-center gap-4"><div className="w-10 h-10 rounded-lg flex items-center justify-center bg-cyan-600/20"><span className="text-cyan-400 font-bold text-sm">{li + 1}</span></div><div><h3 className="text-white font-semibold">{lesson.title}</h3><span className="text-gray-500 text-xs">{lesson.duration}</span></div></div>
+                      </div>
+                    ); })}
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center p-6 rounded-2xl bg-[#0a0a0a]/90 border border-cyan-500/20 backdrop-blur-sm max-w-sm">
+                      <Lock size={24} className="text-cyan-400 mx-auto mb-3" />
+                      <p className="text-white font-bold mb-1">Tre\u015b\u0107 premium</p>
+                      <p className="text-gray-400 text-sm mb-4">Kup wybrany pakiet, aby odblokowa\u0107 ten semestr</p>
+                      <a href="/sklep" className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-bold transition-all">Odblokuj dost\u0119p</a>
+                    </div>
+                  </div>
+                </div>
+              ) : (
               <div className="space-y-3">
                 {sem.lessons.map((li) => { const lesson = lessons[li]; const done = completedLessons.includes(li); if (!lesson) return null; return (
                   <button key={li} onClick={() => startLesson(li)} className={`w-full text-left p-5 rounded-xl border transition-all group ${done ? "bg-green-950/10 border-green-500/20 hover:border-green-500/40" : "bg-[#0f0f0f] border-white/5 hover:border-cyan-500/30"}`}>
@@ -106,8 +127,10 @@ export default function OptymalizacjaPracyPage() {
                   </button>
                 ); })}
               </div>
+              )}
             </motion.div>
-          ))}
+            );
+          })}
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mt-12">
             <button onClick={() => { setView("quiz"); setQuizPage(0); window.scrollTo({ top: 0, behavior: "smooth" }); }} disabled={completedLessons.length < lessons.length} className={`w-full p-6 rounded-2xl border text-left transition-all ${completedLessons.length >= lessons.length ? "bg-gradient-to-r from-cyan-900/20 to-blue-900/20 border-cyan-500/30 hover:border-cyan-500/50 cursor-pointer" : "bg-[#0a0a0a] border-white/5 opacity-50 cursor-not-allowed"}`}>
               <div className="flex items-center gap-4"><div className="w-12 h-12 rounded-xl bg-cyan-600/20 flex items-center justify-center"><Trophy size={24} className="text-cyan-400" /></div><div><h3 className="text-white font-bold text-lg">Egzamin Końcowy — {quizQuestions.length} pytań</h3><p className="text-gray-500 text-sm">{completedLessons.length >= lessons.length ? "Ukończyłeś wszystkie lekcje. Rozpocznij egzamin!" : `Ukończ wszystkie ${lessons.length} lekcji (${completedLessons.length}/${lessons.length})`}</p></div></div>

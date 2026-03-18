@@ -19,12 +19,13 @@ import {
   Layers,
   ClipboardList,
   BookOpen,
+  Lock,
 } from "lucide-react";
 import { lessons, semesters } from "./lessons";
 import type { ContentBlock } from "./lessons";
 import { quizQuestions } from "./quiz";
 import { homeworkTasks } from "./homework";
-import { useAccess, isLessonLocked, LessonLockOverlay, isModuleLocked, ModuleLockOverlay } from "@/app/components/DemoGate";
+import { useAccess, isLessonLocked, LessonLockOverlay, isSemesterLocked } from "@/app/components/DemoGate";
 import { NotesPanel, HomeworkPanel, ProgressTracker, useSaveProgress } from "@/app/components/TrainingFeatures";
 import { HOMEWORK } from "@/lib/homework";
 
@@ -47,12 +48,7 @@ export default function ZaawansowanyPromptingPage() {
   const contentRef = useRef<HTMLDivElement>(null);
   const [showLock, setShowLock] = useState(false);
   const [lessonNotes, setLessonNotes] = useState("");
-  const { hasFullAccess, loading } = useAccess();
-
-  // Block entire module for demo users
-  if (!loading && isModuleLocked("zaawansowany-prompting", hasFullAccess)) {
-    return <ModuleLockOverlay />;
-  }
+  const { hasFullAccess } = useAccess();
   const { saveProgress } = useSaveProgress("zaawansowany-prompting");
   const hwTasks = HOMEWORK["zaawansowany-prompting"] || [];
 
@@ -73,10 +69,13 @@ export default function ZaawansowanyPromptingPage() {
       setCompletedLessons([...completedLessons, currentLesson]);
       saveProgress(currentLesson);
     }
-    if (currentLesson < lessons.length - 1) {
-      setCurrentLesson(currentLesson + 1);
+    const nextIndex = currentLesson + 1;
+    if (nextIndex < lessons.length) {
+      if (isLessonLocked(nextIndex, hasFullAccess)) { setShowLock(true); return; }
+      setCurrentLesson(nextIndex);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
+      if (!hasFullAccess) { setShowLock(true); return; }
       setCompletedLessons([...new Set([...completedLessons, currentLesson])]);
       setView("quiz");
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -328,12 +327,48 @@ export default function ZaawansowanyPromptingPage() {
             )}
           </motion.div>
 
-          {semesters.map((sem, si) => (
-            <motion.div key={sem.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: si * 0.1 }} className="mb-10">
+          {semesters.map((sem, si) => {
+            const semLocked = isSemesterLocked(sem.id, hasFullAccess);
+            return (
+            <motion.div key={sem.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: si * 0.1 }} className="mb-10 relative">
               <div className="flex items-center gap-3 mb-4">
-                <Layers size={20} className="text-purple-400" />
-                <h2 className="text-xl font-bold text-white">{sem.name}</h2>
+                <Layers size={20} className={semLocked ? "text-gray-600" : "text-purple-400"} />
+                <h2 className={`text-xl font-bold ${semLocked ? "text-gray-600" : "text-white"}`}>{sem.name}</h2>
+                {semLocked && <span className="px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[10px] font-bold">PREMIUM</span>}
               </div>
+              {semLocked ? (
+                <div className="relative">
+                  <div className="space-y-3 blur-[6px] pointer-events-none select-none">
+                    {sem.lessons.map((li) => {
+                      const lesson = lessons[li];
+                      if (!lesson) return null;
+                      return (
+                        <div key={li} className="w-full text-left p-5 rounded-xl border bg-[#0f0f0f] border-white/5">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-purple-600/20">
+                              <span className="text-purple-400 font-bold text-sm">{li + 1}</span>
+                            </div>
+                            <div>
+                              <h3 className="text-white font-semibold">{lesson.title}</h3>
+                              <span className="text-gray-500 text-xs">{lesson.duration}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center p-6 rounded-2xl bg-[#0a0a0a]/90 border border-purple-500/20 backdrop-blur-sm max-w-sm">
+                      <Lock size={24} className="text-purple-400 mx-auto mb-3" />
+                      <p className="text-white font-bold mb-1">Treść premium</p>
+                      <p className="text-gray-400 text-sm mb-4">Kup wybrany pakiet, aby odblokować ten semestr</p>
+                      <a href="/sklep" className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold transition-all">
+                        Odblokuj dostęp
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              ) : (
               <div className="space-y-3">
                 {sem.lessons.map((li) => {
                   const lesson = lessons[li];
@@ -357,8 +392,10 @@ export default function ZaawansowanyPromptingPage() {
                   );
                 })}
               </div>
+              )}
             </motion.div>
-          ))}
+            );
+          })}
 
           <div className="grid sm:grid-cols-2 gap-4 mt-12">
             <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>

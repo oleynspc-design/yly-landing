@@ -40,25 +40,16 @@ export function AccessProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Demo users only have access to Semester 1 of Podstawy Promptingu (lessons 0, 1, 2)
-export function isLessonLocked(lessonIndex: number, hasFullAccess: boolean, moduleId?: string): boolean {
+// Demo users have access to Semester 1 (lessons 0, 1, 2) in ALL modules
+export function isLessonLocked(lessonIndex: number, hasFullAccess: boolean): boolean {
   if (hasFullAccess) return false;
-  
-  // Demo: only podstawy-promptingu semester 1 (lessons 0-2) is accessible
-  if (moduleId === "podstawy-promptingu") {
-    return lessonIndex > 2; // Semester 1 = lessons 0, 1, 2
-  }
-  
-  // All other modules are fully locked for demo users
-  return true;
+  return lessonIndex > 2; // Semester 1 = lessons 0, 1, 2
 }
 
-// Check if an entire module is accessible for demo users
-export function isModuleLocked(moduleId: string, hasFullAccess: boolean): boolean {
+// Check if a semester is locked for demo users
+export function isSemesterLocked(semesterId: number, hasFullAccess: boolean): boolean {
   if (hasFullAccess) return false;
-  
-  // Demo: only podstawy-promptingu is accessible
-  return moduleId !== "podstawy-promptingu";
+  return semesterId > 1;
 }
 
 export function ModuleLockOverlay() {
