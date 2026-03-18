@@ -21,15 +21,16 @@ export async function GET() {
 
     const sql = getSql();
     const rows = (await sql`
-      SELECT onboarding_answers, ai_profile_summary, training_path, industry
+      SELECT onboarding_answers, ai_profile_summary, training_path, industry, action_plan_30d
       FROM users WHERE id = ${user.id}::uuid LIMIT 1
-    `) as { onboarding_answers: unknown; ai_profile_summary: string | null; training_path: unknown; industry: string | null }[];
+    `) as { onboarding_answers: unknown; ai_profile_summary: string | null; training_path: unknown; industry: string | null; action_plan_30d: unknown }[];
 
     return NextResponse.json({
       answers: rows[0]?.onboarding_answers || null,
       aiSummary: rows[0]?.ai_profile_summary || null,
       trainingPath: rows[0]?.training_path || null,
       industry: rows[0]?.industry || null,
+      actionPlan30d: rows[0]?.action_plan_30d || null,
     });
   } catch {
     return NextResponse.json({ error: "Błąd serwera" }, { status: 500 });
@@ -49,6 +50,11 @@ export async function POST(req: NextRequest) {
     }
 
     const sql = getSql();
+
+    // Ensure action_plan_30d column exists (safe migration)
+    try {
+      await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS action_plan_30d jsonb`;
+    } catch {}
 
     // Save answers + industry
     await sql`
@@ -72,7 +78,7 @@ export async function POST(req: NextRequest) {
 
 Na podstawie odpowiedzi z quizu onboardingowego stwórz:
 
-1. **PROFIL UCZESTNIKA** (3-5 zdań) — zwięzłe streszczenie: kim jest, czego szuka, jaki ma poziom, jakie ma cele. To będzie widoczne dla admina.
+1. **PROFIL UCZESTNIKA** (5-8 zdań) — szczegółowa analiza: kim jest, czego szuka, jaki ma poziom, jakie ma cele, jakie są jego główne wyzwania, jakie rozwiązania AI mogą mu pomóc. Bądź konkretny i odwołuj się do jego branży.
 
 2. **REKOMENDOWANA ŚCIEŻKA NAUKI** — JSON array z obiektami:
 [
@@ -88,10 +94,23 @@ Dostępne moduły:
 - "social-media" — Social Media & AI
 - "prompts-collection" — Kolekcja gotowych promptów
 
+3. **30-DNIOWY PLAN DZIAŁANIA** — szczegółowy, praktyczny plan na 30 dni dopasowany do profilu uczestnika. JSON array z obiektami:
+[
+  {"day": 1, "title": "Tytuł zadania", "description": "Szczegółowy opis co zrobić", "category": "learning|practice|project|review", "duration": "30 min"}
+]
+Plan powinien:
+- Zaczynać od podstaw i stopniowo zwiększać trudność
+- Zawierać konkretne zadania dopasowane do branży uczestnika
+- Mix: nauka (learning), praktyka (practice), projekty (project), powtórki (review)
+- Być realistyczny (30-60 min dziennie)
+- Dni 1-7: fundamenty, 8-14: techniki, 15-21: praktyka w branży, 22-30: projekty i automatyzacje
+
 Odpowiadaj TYLKO w formacie:
 ---PROFIL---
 [tekst profilu]
 ---SCIEZKA---
+[JSON array]
+---PLAN30---
 [JSON array]`
           },
           {
@@ -99,10 +118,13 @@ Odpowiadaj TYLKO w formacie:
             content: `Branża: ${industry || "nie podano"}
 
 Odpowiedzi z quizu onboardingowego:
-${JSON.stringify(answers, null, 2)}`
+${JSON.stringify(answers, null, 2)}
+
+${answers.aiAnalysisText ? `Dodatkowy opis od uczestnika (szczegółowa analiza potrzeb):
+${answers.aiAnalysisText}` : ""}`
           }
         ],
-        max_tokens: 1500,
+        max_tokens: 4000,
         temperature: 0.7,
       });
 
@@ -110,7 +132,8 @@ ${JSON.stringify(answers, null, 2)}`
 
       // Parse AI response
       const profilMatch = aiText.match(/---PROFIL---\s*([\s\S]*?)---SCIEZKA---/);
-      const sciezkaMatch = aiText.match(/---SCIEZKA---\s*([\s\S]*)/);
+      const sciezkaMatch = aiText.match(/---SCIEZKA---\s*([\s\S]*?)(?:---PLAN30---|$)/);
+      const plan30Match = aiText.match(/---PLAN30---\s*([\s\S]*)/);
 
       aiSummary = profilMatch?.[1]?.trim() || aiText;
 
@@ -123,11 +146,22 @@ ${JSON.stringify(answers, null, 2)}`
         }
       }
 
-      // Save AI summary + training path
+      let actionPlan30d = null;
+      if (plan30Match) {
+        try {
+          const jsonStr = plan30Match[1].trim().replace(/```json?\s*/g, "").replace(/```/g, "").trim();
+          actionPlan30d = JSON.parse(jsonStr);
+        } catch {
+          actionPlan30d = null;
+        }
+      }
+
+      // Save AI summary + training path + 30-day plan
       await sql`
         UPDATE users 
         SET ai_profile_summary = ${aiSummary},
-            training_path = ${trainingPath ? JSON.stringify(trainingPath) : null}::jsonb
+            training_path = ${trainingPath ? JSON.stringify(trainingPath) : null}::jsonb,
+            action_plan_30d = ${actionPlan30d ? JSON.stringify(actionPlan30d) : null}::jsonb
         WHERE id = ${user.id}::uuid
       `;
     } catch (aiError) {
@@ -138,6 +172,7 @@ ${JSON.stringify(answers, null, 2)}`
       ok: true,
       aiSummary,
       trainingPath,
+      actionPlan30d: null,
     });
   } catch (error) {
     console.error("Onboarding API error:", error);

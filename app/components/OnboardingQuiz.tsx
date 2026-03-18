@@ -76,7 +76,7 @@ const goalOptions = [
   { id: "business", label: "Skalowanie biznesu z AI", icon: Briefcase },
 ];
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 
 interface OnboardingQuizProps {
   redirectTo?: string;
@@ -96,6 +96,7 @@ export default function OnboardingQuiz({ redirectTo = "/dashboard" }: Onboarding
   const [goals, setGoals] = useState<string[]>([]);
   const [expectations, setExpectations] = useState("");
   const [challenge, setChallenge] = useState("");
+  const [aiAnalysisText, setAiAnalysisText] = useState("");
 
   const filtered = search.trim()
     ? industries.filter((i) => i.label.toLowerCase().includes(search.toLowerCase()))
@@ -106,6 +107,7 @@ export default function OnboardingQuiz({ redirectTo = "/dashboard" }: Onboarding
     if (step === 1) return !!experience;
     if (step === 2) return goals.length > 0;
     if (step === 3) return true;
+    if (step === 4) return true;
     return false;
   };
 
@@ -123,6 +125,7 @@ export default function OnboardingQuiz({ redirectTo = "/dashboard" }: Onboarding
       goals,
       expectations: expectations.trim() || null,
       challenge: challenge.trim() || null,
+      aiAnalysisText: aiAnalysisText.trim() || null,
     };
 
     try {
@@ -317,6 +320,35 @@ export default function OnboardingQuiz({ redirectTo = "/dashboard" }: Onboarding
                   className="w-full px-4 py-3 rounded-xl bg-[#111] border border-white/10 text-white placeholder:text-gray-600 outline-none focus:border-yellow-500/50 text-sm resize-none"
                 />
               </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── STEP 4: AI deep analysis ── */}
+        {step === 4 && (
+          <motion.div key="step4" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.3 }}>
+            <div className="text-center mb-8">
+              <div className="w-14 h-14 rounded-2xl bg-cyan-600/20 border border-cyan-500/30 flex items-center justify-center mx-auto mb-5">
+                <Brain size={28} className="text-cyan-400" />
+              </div>
+              <h1 className="text-3xl font-black text-white mb-2">Analiza AI Twoich potrzeb</h1>
+              <p className="text-gray-400 max-w-xl mx-auto">Napisz więcej o sobie, swoim biznesie i oczekiwaniach — AI przygotuje szczegółową analizę i 30-dniowy plan działania dopasowany do Ciebie.</p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="p-4 rounded-xl bg-cyan-500/5 border border-cyan-500/10">
+                <p className="text-cyan-400 text-sm font-medium mb-2">💡 Im więcej napiszesz, tym lepsza będzie analiza AI</p>
+                <p className="text-gray-500 text-xs">Opisz np.: czym się zajmujesz, jak wygląda Twój dzień pracy, jakie masz narzędzia, co chciałbyś zautomatyzować, ile osób jest w Twoim zespole, jakie masz budżety na AI...</p>
+              </div>
+              <textarea
+                id="aiAnalysis"
+                value={aiAnalysisText}
+                onChange={(e) => setAiAnalysisText(e.target.value)}
+                placeholder="Opowiedz o swoim biznesie, codziennych wyzwaniach, procesach które chciałbyś usprawnić z pomocą AI. Im więcej szczegółów podasz, tym lepiej AI dopasuje plan działania do Twojej sytuacji..."
+                rows={8}
+                className="w-full px-4 py-3 rounded-xl bg-[#111] border border-white/10 text-white placeholder:text-gray-600 outline-none focus:border-cyan-500/50 text-sm resize-none"
+              />
+              <p className="text-gray-600 text-xs text-right">{aiAnalysisText.length > 0 ? `${aiAnalysisText.length} znaków` : "Opcjonalne, ale bardzo zalecane"}</p>
             </div>
           </motion.div>
         )}

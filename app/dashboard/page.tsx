@@ -11,6 +11,11 @@ import {
   Shield,
   Sparkles,
   ChevronRight,
+  Calendar,
+  Brain,
+  Play,
+  RotateCcw,
+  ClipboardCheck,
 } from "lucide-react";
 
 interface UserData {
@@ -19,6 +24,19 @@ interface UserData {
   fullName: string;
   role: "user" | "admin";
   avatarUrl: string | null;
+}
+
+interface ActionPlanDay {
+  day: number;
+  title: string;
+  description: string;
+  category: "learning" | "practice" | "project" | "review";
+  duration: string;
+}
+
+interface OnboardingData {
+  aiSummary: string | null;
+  actionPlan30d: ActionPlanDay[] | null;
 }
 
 interface Tile {
@@ -94,15 +112,16 @@ const adminTile: Tile = {
 export default function DashboardPage() {
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [onboarding, setOnboarding] = useState<OnboardingData | null>(null);
 
   useEffect(() => {
-    fetch("/api/auth/me")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.user) setUser(data.user);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    Promise.all([
+      fetch("/api/auth/me").then((r) => r.json()),
+      fetch("/api/user/onboarding").then((r) => r.json()).catch(() => null),
+    ]).then(([authData, onboardingData]) => {
+      if (authData.user) setUser(authData.user);
+      if (onboardingData) setOnboarding(onboardingData);
+    }).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
   const allTiles = user?.role === "admin" ? [...tiles, adminTile] : tiles;
@@ -189,12 +208,69 @@ export default function DashboardPage() {
           ))}
         </div>
 
+        {/* AI Summary + Plan Preview */}
+        {onboarding?.aiSummary && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="mt-8 rounded-2xl border border-cyan-500/20 bg-gradient-to-br from-cyan-900/10 to-[#0a0a0a] p-6"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <Brain size={18} className="text-cyan-400" />
+              <h3 className="text-sm font-bold text-white">Analiza AI Twojego profilu</h3>
+            </div>
+            <p className="text-sm text-gray-400 leading-relaxed mb-3 line-clamp-3">{onboarding.aiSummary}</p>
+            <Link href="/profil" className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors">Zobacz pełną analizę →</Link>
+          </motion.div>
+        )}
+
+        {onboarding?.actionPlan30d && onboarding.actionPlan30d.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="mt-6 rounded-2xl border border-blue-500/20 bg-gradient-to-br from-blue-900/10 to-[#0a0a0a] p-6"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Calendar size={18} className="text-blue-400" />
+                <h3 className="text-sm font-bold text-white">Twój 30-dniowy plan</h3>
+              </div>
+              <Link href="/profil" className="text-xs text-blue-400 hover:text-blue-300 transition-colors">Zobacz cały plan →</Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {onboarding.actionPlan30d.slice(0, 3).map((d) => {
+                const catConfig: Record<string, { icon: typeof BookOpen; color: string }> = {
+                  learning: { icon: BookOpen, color: "text-blue-400" },
+                  practice: { icon: Play, color: "text-green-400" },
+                  project: { icon: ClipboardCheck, color: "text-purple-400" },
+                  review: { icon: RotateCcw, color: "text-yellow-400" },
+                };
+                const cat = catConfig[d.category] || catConfig.learning;
+                const CatIcon = cat.icon;
+                return (
+                  <div key={d.day} className="p-3 rounded-xl bg-white/[0.03] border border-white/5">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="w-7 h-7 rounded-md bg-blue-600/20 flex items-center justify-center text-blue-400 text-xs font-bold">{d.day}</span>
+                      <CatIcon size={14} className={cat.color} />
+                      <span className="text-[10px] text-gray-600">{d.duration}</span>
+                    </div>
+                    <h4 className="text-xs font-semibold text-white mb-0.5">{d.title}</h4>
+                    <p className="text-[11px] text-gray-500 line-clamp-2">{d.description}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+
         {/* Quick Stats */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="mt-10 p-6 rounded-2xl border border-white/5 bg-[#0a0a0a]"
+          transition={{ delay: 0.7 }}
+          className="mt-6 p-6 rounded-2xl border border-white/5 bg-[#0a0a0a]"
         >
           <p className="text-center text-gray-600 text-sm">
             💡 <span className="text-gray-400">Tip:</span> Zacznij od modułu <Link href="/szkolenie/podstawy-promptingu" className="text-blue-400 hover:underline">Podstawy Promptingu</Link> jeśli dopiero zaczynasz przygodę z AI!

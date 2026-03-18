@@ -22,6 +22,12 @@ import {
   Briefcase,
   Brain,
   Sparkles,
+  Calendar,
+  ListChecks,
+  BookOpen,
+  Play,
+  RotateCcw,
+  ClipboardCheck,
 } from "lucide-react";
 
 interface UserData {
@@ -50,6 +56,14 @@ interface Certificate {
   downloadable: boolean;
 }
 
+interface ActionPlanDay {
+  day: number;
+  title: string;
+  description: string;
+  category: "learning" | "practice" | "project" | "review";
+  duration: string;
+}
+
 interface OnboardingInfo {
   answers: {
     industry: string | null;
@@ -57,8 +71,11 @@ interface OnboardingInfo {
     goals: string[] | null;
     expectations: string | null;
     challenge: string | null;
+    aiAnalysisText?: string | null;
   } | null;
+  aiSummary: string | null;
   trainingPath: { module: string; priority: string; reason: string }[] | null;
+  actionPlan30d: ActionPlanDay[] | null;
   industry: string | null;
 }
 
@@ -107,6 +124,7 @@ export default function ProfilePage() {
   const [redeemSuccess, setRedeemSuccess] = useState(false);
   const [stats, setStats] = useState<UserStats | null>(null);
   const [onboarding, setOnboarding] = useState<OnboardingInfo | null>(null);
+  const [planWeek, setPlanWeek] = useState(0);
   const router = useRouter();
 
   useEffect(() => {
@@ -482,6 +500,16 @@ export default function ProfilePage() {
               </div>
             )}
 
+            {onboarding.aiSummary && (
+              <div className="mb-4 rounded-xl bg-gradient-to-br from-cyan-500/5 to-blue-500/5 border border-cyan-500/20 p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Brain size={16} className="text-cyan-400" />
+                  <span className="text-sm font-bold text-white">Analiza AI Twojego profilu</span>
+                </div>
+                <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-line">{onboarding.aiSummary}</p>
+              </div>
+            )}
+
             {onboarding.trainingPath && onboarding.trainingPath.length > 0 && (
               <div className="rounded-xl bg-white/5 p-4">
                 <div className="flex items-center gap-2 mb-3">
@@ -513,6 +541,72 @@ export default function ProfilePage() {
               >
                 Zmień cele i preferencje →
               </Link>
+            </div>
+          </section>
+        )}
+
+        {/* 30-Day Action Plan */}
+        {onboarding?.actionPlan30d && onboarding.actionPlan30d.length > 0 && (
+          <section className="rounded-2xl border border-blue-500/20 bg-gradient-to-br from-blue-900/5 to-[#111] p-6">
+            <h2 className="mb-5 flex items-center gap-2 text-lg font-bold text-white">
+              <Calendar size={20} className="text-blue-400" />
+              Twój 30-dniowy plan działania AI
+            </h2>
+
+            <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+              {[0, 1, 2, 3].map((w) => (
+                <button
+                  key={w}
+                  onClick={() => setPlanWeek(w)}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
+                    planWeek === w
+                      ? "bg-blue-600 text-white"
+                      : "bg-white/5 text-gray-400 hover:bg-white/10"
+                  }`}
+                >
+                  {w === 0 ? "Tydzień 1 (1-7)" : w === 1 ? "Tydzień 2 (8-14)" : w === 2 ? "Tydzień 3 (15-21)" : "Tydzień 4 (22-30)"}
+                </button>
+              ))}
+            </div>
+
+            <div className="space-y-3">
+              {onboarding.actionPlan30d
+                .filter((d) => {
+                  if (planWeek === 0) return d.day >= 1 && d.day <= 7;
+                  if (planWeek === 1) return d.day >= 8 && d.day <= 14;
+                  if (planWeek === 2) return d.day >= 15 && d.day <= 21;
+                  return d.day >= 22 && d.day <= 30;
+                })
+                .map((d) => {
+                  const catConfig: Record<string, { icon: typeof BookOpen; color: string; label: string }> = {
+                    learning: { icon: BookOpen, color: "text-blue-400", label: "Nauka" },
+                    practice: { icon: Play, color: "text-green-400", label: "Praktyka" },
+                    project: { icon: ClipboardCheck, color: "text-purple-400", label: "Projekt" },
+                    review: { icon: RotateCcw, color: "text-yellow-400", label: "Powtórka" },
+                  };
+                  const cat = catConfig[d.category] || catConfig.learning;
+                  const CatIcon = cat.icon;
+                  return (
+                    <div key={d.day} className="flex gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/5 hover:border-white/10 transition-all">
+                      <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                        <div className="w-10 h-10 rounded-lg bg-blue-600/20 flex items-center justify-center">
+                          <span className="text-blue-400 font-bold text-sm">{d.day}</span>
+                        </div>
+                        <span className="text-[10px] text-gray-600">{d.duration}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="text-sm font-semibold text-white">{d.title}</h4>
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/5 ${cat.color}`}>
+                            <CatIcon size={10} />
+                            {cat.label}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-400 leading-relaxed">{d.description}</p>
+                      </div>
+                    </div>
+                  );
+                })}
             </div>
           </section>
         )}
