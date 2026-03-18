@@ -13,6 +13,9 @@ interface UserWithAccessRow {
   unlock_code: string | null;
   package_type: string | null;
   last_active: string | null;
+  industry: string | null;
+  xp: number;
+  onboarding_done: boolean;
 }
 
 export async function GET() {
@@ -33,6 +36,9 @@ export async function GET() {
         u.role, 
         u.created_at,
         u.last_active,
+        u.industry,
+        COALESCE(u.xp, 0) as xp,
+        (u.onboarding_answers IS NOT NULL) as onboarding_done,
         ta.status, 
         ta.granted_scope, 
         ta.unlock_code,
@@ -40,7 +46,6 @@ export async function GET() {
       FROM users u
       LEFT JOIN training_access ta ON ta.user_id = u.id
       ORDER BY u.created_at DESC
-      LIMIT 100;
     `;
 
     return NextResponse.json({ users: result as UserWithAccessRow[] });
