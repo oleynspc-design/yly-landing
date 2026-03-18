@@ -226,7 +226,7 @@ export default function Helply({ moduleSlug, moduleName, currentLesson, lessonNo
               y: { repeat: Infinity, duration: 2.5, ease: "easeInOut" },
             }}
             onClick={() => setOpen(true)}
-            className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-500 shadow-lg shadow-emerald-500/25 flex items-center justify-center hover:shadow-xl hover:shadow-emerald-500/40 transition-shadow group cursor-pointer"
+            className="fixed bottom-24 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-500 shadow-lg shadow-emerald-500/25 flex items-center justify-center hover:shadow-xl hover:shadow-emerald-500/40 transition-shadow group cursor-pointer"
           >
             {/* Breathing pulse ring */}
             <motion.div
@@ -291,7 +291,7 @@ export default function Helply({ moduleSlug, moduleName, currentLesson, lessonNo
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-6 right-6 z-50 w-[380px] max-h-[600px] rounded-2xl bg-[#0a0a0a] border border-white/10 shadow-2xl shadow-black/50 flex flex-col overflow-hidden"
+            className="fixed bottom-24 right-6 z-50 w-[380px] max-h-[550px] rounded-2xl bg-[#0a0a0a] border border-white/10 shadow-2xl shadow-black/50 flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-gradient-to-r from-emerald-900/30 to-cyan-900/30">
