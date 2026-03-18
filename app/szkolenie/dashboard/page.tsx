@@ -21,7 +21,18 @@ interface UserData {
   avatarUrl: string | null;
 }
 
-const tiles = [
+interface Tile {
+  id: string;
+  title: string;
+  desc: string;
+  icon: typeof GraduationCap;
+  href: string;
+  color: string;
+  bgGlow: string;
+  comingSoon?: boolean;
+}
+
+const tiles: Tile[] = [
   {
     id: "szkolenia",
     title: "Szkolenia",
@@ -70,7 +81,7 @@ const tiles = [
   },
 ];
 
-const adminTile = {
+const adminTile: Tile = {
   id: "admin",
   title: "Panel Admina",
   desc: "Zarządzaj użytkownikami i treścią",
