@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { User, Settings, LogOut, Shield, ChevronDown, Menu, X, ShoppingCart, Video } from "lucide-react";
+import { User, Settings, LogOut, Shield, ChevronDown, Menu, X, ShoppingCart, Video, Calendar } from "lucide-react";
 import { useLang, Lang } from "../context/LanguageContext";
 
 const langs: { code: Lang; label: string; flag: string }[] = [
@@ -96,6 +96,15 @@ export default function TrainingNav() {
               className="rounded-lg px-3 py-1.5 text-gray-400 transition-colors hover:bg-white/5 hover:text-white"
             >
               Profil
+            </Link>
+            <Link
+              href="/szkolenie/planer"
+              className="rounded-lg px-3 py-1.5 text-gray-400 transition-colors hover:bg-white/5 hover:text-white"
+            >
+              <span className="flex items-center gap-1">
+                <Calendar size={14} />
+                Planer 30d
+              </span>
             </Link>
             {(user?.packageType === "pro" || user?.packageType === "premium" || user?.role === "admin") && (
               <Link
@@ -276,6 +285,13 @@ export default function TrainingNav() {
               className="block rounded-lg px-3 py-2 text-base font-medium text-gray-300 hover:bg-white/5 hover:text-white"
             >
               Profil
+            </Link>
+            <Link
+              href="/szkolenie/planer"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block rounded-lg px-3 py-2 text-base font-medium text-gray-300 hover:bg-white/5 hover:text-white"
+            >
+              <span className="flex items-center gap-2"><Calendar size={16} /> Planer 30d</span>
             </Link>
             {(user?.packageType === "pro" || user?.packageType === "premium" || user?.role === "admin") && (
               <Link
