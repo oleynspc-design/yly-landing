@@ -10,7 +10,7 @@ export default async function LoginPage() {
     if (user) {
       redirect(
         user.trainingAccessStatus === "granted" && user.trainingAccessScope === "all"
-          ? "/szkolenie"
+          ? "/szkolenie/dashboard"
           : "/ograniczony-dostep"
       );
     }

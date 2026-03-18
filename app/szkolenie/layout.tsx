@@ -10,13 +10,13 @@ export default async function TrainingLayout({
   children: React.ReactNode;
 }>) {
   if (!isAuthConfigured()) {
-    redirect("/logowanie?setup=1&next=/szkolenie");
+    redirect("/logowanie?setup=1&next=/szkolenie/dashboard");
   }
 
   const user = await getCurrentUser();
 
   if (!user) {
-    redirect("/logowanie?next=/szkolenie");
+    redirect("/logowanie?next=/szkolenie/dashboard");
   }
 
   // Allow demo users (pending) through — they see limited content
