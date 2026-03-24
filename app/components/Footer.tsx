@@ -50,9 +50,15 @@ export default function Footer() {
             <span className="text-gray-800">|</span>
             <Link href="/regulamin-chatbota" className="hover:text-gray-400 transition-colors">{ui.footerChatbot}</Link>
           </div>
-          <div className="text-gray-700 text-xs">
-            Made with <span className="text-blue-500">♥</span> for the AI community
-          </div>
+          <Link
+            href="https://oleydesign.pl"
+            className="inline-flex items-center gap-3 text-xs text-gray-700 transition-colors hover:text-gray-300"
+          >
+            <span>Projekt i wykonanie:</span>
+            <span className="text-sm font-black tracking-[0.22em] uppercase text-transparent bg-clip-text bg-gradient-to-r from-white via-violet-200 to-violet-500">
+              oleydesign
+            </span>
+          </Link>
         </div>
       </div>
     </footer>
