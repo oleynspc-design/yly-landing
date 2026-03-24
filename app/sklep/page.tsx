@@ -188,121 +188,9 @@ export default function ShopPage() {
         </div>
       </section>
 
-      {/* Products */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 size={32} className="animate-spin text-blue-500" />
-            </div>
-          ) : (
-            <>
-              {error && (
-                <div className="mb-8 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
-                  {error}
-                </div>
-              )}
 
-              {hasAccess && (
-                <div className="mb-8 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm text-center">
-                  ✅ Masz już pełny dostęp do szkolenia!{" "}
-                  <Link href="/szkolenie" className="underline font-semibold">
-                    Przejdź do nauki →
-                  </Link>
-                </div>
-              )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {products.map((product, i) => {
-                  const isBest = product.type === "bundle";
-                  return (
-                    <motion.div
-                      key={product.id}
-                      initial={{ opacity: 0, y: 30 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: i * 0.1 }}
-                      className={`relative flex flex-col rounded-2xl border transition-all ${
-                        isBest
-                          ? "border-purple-500/40 bg-gradient-to-b from-purple-500/5 to-[#0f0f0f]"
-                          : "border-white/5 bg-[#0f0f0f] hover:border-blue-500/30"
-                      }`}
-                    >
-                      {isBest && (
-                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-purple-600 text-white text-xs font-bold">
-                          <Sparkles size={12} className="inline mr-1" />
-                          NAJLEPSZA WARTOŚĆ
-                        </div>
-                      )}
 
-                      <div className="p-6 flex-1 flex flex-col">
-                        {/* Type badge */}
-                        <div className="flex items-center justify-between mb-4">
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${typeBadgeColors[product.type] || typeBadgeColors.course}`}>
-                            {typeIcons[product.type]}
-                            {typeLabels[product.type] || product.type}
-                          </span>
-                        </div>
-
-                        {/* Name & Description */}
-                        <h3 className="text-xl font-bold text-white mb-2">{product.name}</h3>
-                        <p className="text-gray-500 text-sm mb-6 flex-1">{product.description}</p>
-
-                        {/* Features for bundle */}
-                        {isBest && (
-                          <ul className="space-y-2 mb-6">
-                            {["Wszystkie kursy AI", "E-booki i materiały", "Kolekcje promptów", "Dostęp do społeczności premium", "Przyszłe aktualizacje gratis"].map((f) => (
-                              <li key={f} className="flex items-center gap-2 text-sm text-gray-300">
-                                <Check size={14} className="text-purple-400 flex-shrink-0" />
-                                {f}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-
-                        {/* Price */}
-                        <div className="mb-4">
-                          <span className="text-3xl font-black text-white">{formatPrice(product.price_pln)}</span>
-                          <span className="text-gray-500 text-sm ml-2">brutto</span>
-                        </div>
-
-                        {/* Buy button */}
-                        <button
-                          onClick={() => handleBuy(product.slug)}
-                          disabled={buying === product.slug || hasAccess}
-                          className={`w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                            isBest
-                              ? "bg-purple-600 hover:bg-purple-500 text-white hover:shadow-lg hover:shadow-purple-500/25"
-                              : "bg-blue-600 hover:bg-blue-500 text-white hover:shadow-lg hover:shadow-blue-500/25"
-                          }`}
-                        >
-                          {buying === product.slug ? (
-                            <>
-                              <Loader2 size={16} className="animate-spin" />
-                              Przekierowanie...
-                            </>
-                          ) : hasAccess ? (
-                            "Masz już dostęp"
-                          ) : !user ? (
-                            <>
-                              <Lock size={16} />
-                              Zaloguj się, aby kupić
-                            </>
-                          ) : (
-                            <>
-                              Kup teraz
-                              <ArrowRight size={16} />
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </>
-          )}
-        </div>
-      </section>
 
       {/* Package Tiers */}
       <section className="py-20 border-t border-white/5">
@@ -317,6 +205,23 @@ export default function ShopPage() {
               <p className="text-gray-400 max-w-xl mx-auto">Każdy pakiet daje dostęp do szkoleń. Pakiety Pro i Premium zawierają spotkania online 1-na-1 z Patrykiem.</p>
             </div>
           </motion.div>
+
+          <div className="max-w-4xl mx-auto">
+            {error && (
+              <div className="mb-8 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
+                {error}
+              </div>
+            )}
+
+            {hasAccess && (
+              <div className="mb-8 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm text-center">
+                ✅ Masz już pełny dostęp do szkolenia!{" "}
+                <Link href="/szkolenie" className="underline font-semibold">
+                  Przejdź do nauki →
+                </Link>
+              </div>
+            )}
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
             {/* Basic */}
