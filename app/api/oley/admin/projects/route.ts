@@ -67,6 +67,7 @@ export async function POST(req: NextRequest) {
       RETURNING id::text, title, status, progress, created_at
     `;
 
+    // @ts-expect-error - SQL library type inference issue
     return NextResponse.json({ project: rows[0] });
   } catch (err) {
     console.error("Oley create project error:", err);

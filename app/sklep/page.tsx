@@ -18,7 +18,44 @@ import {
   Video,
   Crown,
   Star,
+  Clock,
 } from "lucide-react";
+
+function CountdownTimer({ targetDate }: { targetDate: string }) {
+  const [timeLeft, setTimeLeft] = useState<{ d: number; h: number; m: number; s: number } | null>(null);
+
+  useEffect(() => {
+    const target = new Date(targetDate).getTime();
+    
+    const update = () => {
+      const now = new Date().getTime();
+      const distance = target - now;
+      if (distance < 0) {
+        setTimeLeft(null);
+        return;
+      }
+      setTimeLeft({
+        d: Math.floor(distance / (1000 * 60 * 60 * 24)),
+        h: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+        m: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+        s: Math.floor((distance % (1000 * 60)) / 1000),
+      });
+    };
+    
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [targetDate]);
+
+  if (!timeLeft) return <span className="text-xs text-red-400 font-bold uppercase">Promocja zakończona</span>;
+
+  return (
+    <div className="flex items-center gap-1.5 text-xs font-bold text-red-400 bg-red-500/10 px-3 py-1.5 rounded-full border border-red-500/20 w-fit">
+      <Clock size={12} className="animate-pulse" />
+      Koniec za: {timeLeft.d}d {timeLeft.h.toString().padStart(2, '0')}:{timeLeft.m.toString().padStart(2, '0')}:{timeLeft.s.toString().padStart(2, '0')}
+    </div>
+  );
+}
 
 interface Product {
   id: string;
@@ -281,7 +318,7 @@ export default function ShopPage() {
             </div>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
             {/* Basic */}
             <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="flex flex-col rounded-2xl border border-white/5 bg-[#0f0f0f] p-6">
               <div className="flex items-center gap-2 mb-4">
@@ -289,10 +326,10 @@ export default function ShopPage() {
                 <span className="text-xs font-bold uppercase text-gray-400 bg-gray-500/10 px-2.5 py-0.5 rounded-full">Basic</span>
               </div>
               <h3 className="text-xl font-bold text-white mb-2">Pakiet Basic</h3>
-              <div className="mb-4"><span className="text-3xl font-black text-white">199 zł</span><span className="text-gray-500 text-sm ml-2">jednorazowo</span></div>
-              <p className="text-gray-500 text-sm mb-4 flex-1">Pełny dostęp do wszystkich 7 szkoleń AI z egzaminami i certyfikatami.</p>
+              <div className="mb-4"><span className="text-3xl font-black text-white">99 zł</span><span className="text-gray-500 text-sm ml-2">jednorazowo</span></div>
+              <p className="text-gray-500 text-sm mb-4 flex-1">Wszystko co w pakiecie Pro, ale tylko jedno szkolenie (1h) z możliwością dokupienia kolejnego za 69 zł.</p>
               <ul className="space-y-2 mb-6">
-                {["7 kompletnych szkoleń (84+ lekcji)", "Egzaminy i certyfikaty", "Kolekcja 200+ promptów", "Asystent AI PROMPTLY", "Czat grupowy", "Przyszłe aktualizacje"].map((f) => (
+                {["1x szkolenie online (1h)", "Prezentacja ze szkolenia", "Dostęp do dysku Google z materiałami", "Kursy z materiałami w panelu", "Certyfikat ukończenia", "Możliwość dokupienia szkolenia (+69 zł)"].map((f) => (
                   <li key={f} className="flex items-center gap-2 text-sm text-gray-300"><Check size={14} className="text-gray-500 flex-shrink-0" />{f}</li>
                 ))}
               </ul>
@@ -302,69 +339,83 @@ export default function ShopPage() {
             </motion.div>
 
             {/* Pro */}
-            <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }} className="relative flex flex-col rounded-2xl border border-purple-500/40 bg-gradient-to-b from-purple-500/5 to-[#0f0f0f] p-6">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-purple-600 text-white text-xs font-bold">
-                <Sparkles size={12} className="inline mr-1" />NAJPOPULARNIEJSZY
+            <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }} className="relative flex flex-col rounded-2xl border border-pink-500/40 bg-gradient-to-b from-purple-500/5 to-[#0f0f0f] p-6">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-pink-500 to-orange-400 text-white text-xs font-bold flex items-center gap-1 shadow-lg shadow-pink-500/30 whitespace-nowrap">
+                🐰 PRZECENA WIELKANOCNA
               </div>
-              <div className="flex items-center gap-2 mb-4">
-                <Zap size={20} className="text-purple-400" />
-                <span className="text-xs font-bold uppercase text-purple-400 bg-purple-500/10 px-2.5 py-0.5 rounded-full">Pro</span>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Zap size={20} className="text-pink-400" />
+                  <span className="text-xs font-bold uppercase text-pink-400 bg-pink-500/10 px-2.5 py-0.5 rounded-full">Pro</span>
+                </div>
+                <CountdownTimer targetDate="2026-04-07T23:59:59" />
               </div>
               <h3 className="text-xl font-bold text-white mb-2">Pakiet Pro</h3>
-              <div className="mb-4"><span className="text-3xl font-black text-white">399 zł</span><span className="text-gray-500 text-sm ml-2">jednorazowo</span></div>
-              <p className="text-gray-500 text-sm mb-4 flex-1">Wszystko z Basic + spotkanie online 1-na-1 z ekspertem AI.</p>
-              <ul className="space-y-2 mb-6">
-                {["Wszystko z pakietu Basic", "1x spotkanie online (1.5h)", "Spersonalizowana ścieżka AI", "Priorytetowe wsparcie", "Materiały dodatkowe"].map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-gray-300"><Check size={14} className="text-purple-400 flex-shrink-0" />{f}</li>
-                ))}
-              </ul>
-              <button onClick={() => handleBuy("pro")} disabled={buying === "pro" || hasAccess} className="w-full mt-auto px-6 py-3.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-sm transition-all hover:shadow-lg hover:shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed">
-                {buying === "pro" ? <><Loader2 size={16} className="inline animate-spin mr-2" />Przekierowanie...</> : hasAccess ? "Masz już dostęp" : !user ? <><Lock size={16} className="inline mr-2" />Zaloguj się</> : <>Kup Pro<ArrowRight size={16} className="inline ml-2" /></>}
-              </button>
-            </motion.div>
-
-            {/* Premium */}
-            <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.2 }} className="flex flex-col rounded-2xl border border-yellow-500/30 bg-gradient-to-b from-yellow-500/5 to-[#0f0f0f] p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Crown size={20} className="text-yellow-400" />
-                <span className="text-xs font-bold uppercase text-yellow-400 bg-yellow-500/10 px-2.5 py-0.5 rounded-full">Premium</span>
+              <div className="mb-4 flex flex-col items-start">
+                <span className="text-gray-500 line-through text-lg font-medium mb-[-4px]">599 zł</span>
+                <div className="flex items-baseline">
+                  <span className="text-3xl font-black text-white">399 zł</span><span className="text-gray-500 text-sm ml-2">jednorazowo</span>
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Pakiet Premium</h3>
-              <div className="mb-4"><span className="text-3xl font-black text-white">699 zł</span><span className="text-gray-500 text-sm ml-2">jednorazowo</span></div>
-              <p className="text-gray-500 text-sm mb-4 flex-1">Pełne wsparcie — 3 spotkania, VIP dostęp, wszystkie przyszłe materiały.</p>
+              <p className="text-gray-500 text-sm mb-4 flex-1">Pakiet z 2 spotkaniami online, prezentacją, dostępem do dysku Google z materiałami, kursami w panelu oraz certyfikatem. Przecena z okazji Świąt Wielkanocnych (do 07.04.2026).</p>
               <ul className="space-y-2 mb-6">
-                {["Wszystko z pakietu Pro", "3x spotkanie online (1.5h)", "Dostęp do kalendarza spotkań", "Przyszłe kursy gratis", "VIP wsparcie"].map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-gray-300"><Check size={14} className="text-yellow-400 flex-shrink-0" />{f}</li>
+                {["2x spotkania online", "Prezentacja ze szkolenia", "Dostęp do dysku Google z materiałami", "Kursy z materiałami w panelu", "Certyfikat ukończenia"].map((f) => (
+                  <li key={f} className="flex items-center gap-2 text-sm text-gray-300"><Check size={14} className="text-pink-400 flex-shrink-0" />{f}</li>
                 ))}
               </ul>
-              <button onClick={() => handleBuy("premium")} disabled={buying === "premium" || hasAccess} className="w-full mt-auto px-6 py-3.5 rounded-xl bg-yellow-600 hover:bg-yellow-500 text-white font-bold text-sm transition-all hover:shadow-lg hover:shadow-yellow-500/25 disabled:opacity-50 disabled:cursor-not-allowed">
-                {buying === "premium" ? <><Loader2 size={16} className="inline animate-spin mr-2" />Przekierowanie...</> : hasAccess ? "Masz już dostęp" : !user ? <><Lock size={16} className="inline mr-2" />Zaloguj się</> : <>Kup Premium<ArrowRight size={16} className="inline ml-2" /></>}
+              <button onClick={() => handleBuy("pro")} disabled={buying === "pro" || hasAccess} className="w-full mt-auto px-6 py-3.5 rounded-xl bg-gradient-to-r from-pink-600 to-orange-500 hover:from-pink-500 hover:to-orange-400 text-white font-bold text-sm transition-all hover:shadow-lg hover:shadow-pink-500/25 disabled:opacity-50 disabled:cursor-not-allowed">
+                {buying === "pro" ? <><Loader2 size={16} className="inline animate-spin mr-2" />Przekierowanie...</> : hasAccess ? "Masz już dostęp" : !user ? <><Lock size={16} className="inline mr-2" />Zaloguj się</> : <>Kup Pro<ArrowRight size={16} className="inline ml-2" /></>}
               </button>
             </motion.div>
           </div>
 
-          {/* Extra meeting addon */}
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="rounded-2xl border border-blue-500/20 bg-blue-500/5 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-blue-500/10 border border-blue-500/20 flex-shrink-0">
-                <Video size={28} className="text-blue-400" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            {/* Spotkanie indywidualne addon */}
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="rounded-2xl border border-blue-500/20 bg-blue-500/5 p-6 flex flex-col justify-between gap-4 h-full">
+              <div className="flex items-center gap-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-blue-500/10 border border-blue-500/20 flex-shrink-0">
+                  <Video size={28} className="text-blue-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Spotkanie indywidualne</h3>
+                  <p className="text-sm text-gray-400">1.5h spotkanie 1-na-1 z Patrykiem. Dowolny temat (np. AI, produktywność).</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-lg font-bold text-white">Dodatkowe spotkanie online</h3>
-                <p className="text-sm text-gray-400">1.5h spotkanie 1-na-1 z Patrykiem. Dla użytkowników Pro/Premium.</p>
+              <div className="flex items-center justify-between border-t border-blue-500/10 pt-4 mt-2">
+                <span className="text-2xl font-black text-white">149 zł</span>
+                <button
+                  onClick={() => handleBuy("meeting-addon")}
+                  disabled={!user || buying === "meeting-addon"}
+                  className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition-all disabled:opacity-50"
+                >
+                  {buying === "meeting-addon" ? "..." : "Kup spotkanie"}
+                </button>
               </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-2xl font-black text-white">200,00 zł</span>
-              <button
-                onClick={() => handleBuy("meeting-addon")}
-                disabled={!user || buying === "meeting-addon"}
-                className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition-all disabled:opacity-50"
-              >
-                {buying === "meeting-addon" ? "..." : "Kup spotkanie"}
-              </button>
-            </div>
-          </motion.div>
+            </motion.div>
+
+            {/* Kolejne szkolenie addon */}
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }} className="rounded-2xl border border-purple-500/20 bg-purple-500/5 p-6 flex flex-col justify-between gap-4 h-full">
+              <div className="flex items-center gap-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-purple-500/10 border border-purple-500/20 flex-shrink-0">
+                  <BookOpen size={28} className="text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Dodatkowe szkolenie</h3>
+                  <p className="text-sm text-gray-400">Kolejne 1h szkolenie tematyczne. Idealne jako rozszerzenie dla pakietu Basic.</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between border-t border-purple-500/10 pt-4 mt-2">
+                <span className="text-2xl font-black text-white">69 zł</span>
+                <button
+                  onClick={() => handleBuy("extra-training")}
+                  disabled={!user || buying === "extra-training"}
+                  className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-sm transition-all disabled:opacity-50"
+                >
+                  {buying === "extra-training" ? "..." : "Kup szkolenie"}
+                </button>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </section>
 

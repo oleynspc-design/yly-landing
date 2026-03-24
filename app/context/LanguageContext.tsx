@@ -47,34 +47,27 @@ export const translations = {
     offer: {
       badge: "Cennik",
       title: "Wybierz swój pakiet",
-      sub: "7 kompletnych szkoleń AI, egzaminy, certyfikaty, asystent AI PROMPTLY i czat grupowy. Zacznij za darmo — pierwsza lekcja każdego modułu gratis!",
+      sub: "Pełne szkolenia AI, prezentacje, dostęp do materiałów, kursy w panelu i certyfikaty.",
       tiers: [
         {
           name: "Basic",
-          price: "199",
+          price: "99",
           period: "jednorazowo",
-          desc: "Pełny dostęp do wszystkich 7 szkoleń AI z egzaminami i certyfikatami.",
-          features: ["7 kompletnych szkoleń (84+ lekcji)", "Egzaminy i certyfikaty", "Kolekcja 200+ promptów", "Asystent AI PROMPTLY", "Czat grupowy", "Przyszłe aktualizacje"],
-          cta: "Kup Basic",
+          desc: "Otrzymujesz to samo co w pakiecie Pro, ale zawiera tylko jedno szkolenie (1h).",
+          features: ["1x szkolenie online (1h)", "Prezentacja ze szkolenia", "Dostęp do dysku Google z materiałami", "Kursy z materiałami w panelu", "Certyfikat ukończenia", "Możliwość dokupienia szkolenia (+69 zł)"],
+          cta: "Wybieram Basic",
           popular: false,
         },
         {
           name: "Pro",
           price: "399",
+          oldPrice: "599",
+          easterSale: true,
           period: "jednorazowo",
-          desc: "Wszystko z Basic + spotkanie online 1-na-1 z ekspertem AI.",
-          features: ["Wszystko z pakietu Basic", "1x spotkanie online 1.5h", "Spersonalizowana ścieżka AI", "Priorytetowe wsparcie", "Materiały dodatkowe"],
-          cta: "Kup Pro",
+          desc: "Pakiet z 2 spotkaniami online, prezentacją, dostępem do dysku Google z materiałami, kursami w panelu oraz certyfikatem. Przecena z okazji Świąt Wielkanocnych (do 07.04.2026).",
+          features: ["2x spotkania online", "Prezentacja ze szkolenia", "Dostęp do dysku Google z materiałami", "Kursy z materiałami w panelu", "Certyfikat ukończenia"],
+          cta: "Wybieram Pro",
           popular: true,
-        },
-        {
-          name: "Premium",
-          price: "699",
-          period: "jednorazowo",
-          desc: "Pełne wsparcie — 3 spotkania, VIP dostęp, wszystkie przyszłe materiały.",
-          features: ["Wszystko z pakietu Pro", "3x spotkanie online 1.5h", "Dostęp do kalendarza spotkań", "VIP wsparcie", "Przyszłe kursy gratis"],
-          cta: "Kup Premium",
-          popular: false,
         },
       ],
     },
@@ -258,11 +251,10 @@ export const translations = {
     offer: {
       badge: "Pricing",
       title: "Choose Your Plan",
-      sub: "7 complete AI trainings, exams, certificates, PROMPTLY AI assistant and group chat. Start free — first lesson of every module is on us!",
+      sub: "Complete AI trainings, presentations, access to materials, dashboard courses, and certificates.",
       tiers: [
-        { name: "Basic", price: "199", period: "one-time", desc: "Full access to all 7 AI trainings with exams and certificates.", features: ["7 complete trainings (84+ lessons)", "Exams and certificates", "200+ prompt collection", "PROMPTLY AI assistant", "Group chat", "Future updates"], cta: "Buy Basic", popular: false },
-        { name: "Pro", price: "399", period: "one-time", desc: "Everything in Basic + 1-on-1 online meeting with AI expert.", features: ["Everything in Basic", "1x online meeting 1.5h", "Personalized AI path", "Priority support", "Bonus materials"], cta: "Buy Pro", popular: true },
-        { name: "Premium", price: "699", period: "one-time", desc: "Full support — 3 meetings, VIP access, all future materials.", features: ["Everything in Pro", "3x online meeting 1.5h", "Calendar access", "VIP support", "Future courses free"], cta: "Buy Premium", popular: false },
+        { name: "Basic", price: "99", period: "one-time", desc: "Same as Pro package, but includes only one 1h training.", features: ["1x online training (1h)", "Training presentation", "Google Drive materials access", "Courses in dashboard", "Completion certificate", "Option to buy another training (+69 zł)"], cta: "Buy Basic", popular: false },
+        { name: "Pro", price: "399", oldPrice: "599", easterSale: true, period: "one-time", desc: "Extended training package. Easter sale from 599 zł (until 07.04.2026).", features: ["2x online meetings", "Training presentation", "Google Drive materials access", "Courses in dashboard", "Completion certificate"], cta: "Buy Pro", popular: true },
       ],
     },
     community: {
@@ -445,11 +437,10 @@ export const translations = {
     offer: {
       badge: "Ціни",
       title: "Обери свій пакет",
-      sub: "7 повних навчань з ШІ, іспити, сертифікати, асистент PROMPTLY та груповий чат. Почни безкоштовно!",
+      sub: "Повні навчання з ШІ, презентації, доступ до матеріалів, курси в панелі та сертифікати.",
       tiers: [
-        { name: "Basic", price: "199", period: "одноразово", desc: "Повний доступ до всіх 7 навчань з іспитами та сертифікатами.", features: ["7 навчань (84+ уроків)", "Іспити та сертифікати", "200+ промптів", "Асистент PROMPTLY", "Груповий чат", "Оновлення"], cta: "Купити Basic", popular: false },
-        { name: "Pro", price: "399", period: "одноразово", desc: "Все з Basic + онлайн-зустріч 1-на-1 з експертом.", features: ["Все з Basic", "1x зустріч 1.5г", "Персоналізований шлях", "Пріоритетна підтримка", "Додаткові матеріали"], cta: "Купити Pro", popular: true },
-        { name: "Premium", price: "699", period: "одноразово", desc: "Повна підтримка — 3 зустрічі, VIP доступ.", features: ["Все з Pro", "3x зустріч 1.5г", "Доступ до календаря", "VIP підтримка", "Майбутні курси безкоштовно"], cta: "Купити Premium", popular: false },
+        { name: "Basic", price: "99", period: "одноразово", desc: "Отримуєте те саме, що і в пакеті Pro, але містить лише одне навчання (1г).", features: ["1x онлайн навчання (1г)", "Презентація", "Google Drive з матеріалами", "Курси в панелі", "Сертифікат", "Можливість докупити навчання (+69 zł)"], cta: "Купити Basic", popular: false },
+        { name: "Pro", price: "399", oldPrice: "599", easterSale: true, period: "одноразово", desc: "Розширений пакет. Великодня знижка з 599 zł (до 07.04.2026).", features: ["2x онлайн зустрічі", "Презентація", "Google Drive з матеріалами", "Курси в панелі", "Сертифікат"], cta: "Купити Pro", popular: true },
       ],
     },
     community: {
@@ -632,11 +623,10 @@ export const translations = {
     offer: {
       badge: "Precios",
       title: "Elige tu Plan",
-      sub: "7 formaciones completas de IA, exámenes, certificados, asistente PROMPTLY y chat grupal. ¡Empieza gratis!",
+      sub: "Formaciones completas de IA, presentaciones, acceso a materiales, cursos en el panel y certificados.",
       tiers: [
-        { name: "Basic", price: "199", period: "único", desc: "Acceso completo a las 7 formaciones con exámenes y certificados.", features: ["7 formaciones (84+ lecciones)", "Exámenes y certificados", "200+ prompts", "Asistente PROMPTLY", "Chat grupal", "Actualizaciones"], cta: "Comprar Basic", popular: false },
-        { name: "Pro", price: "399", period: "único", desc: "Todo de Basic + reunión online 1-a-1 con experto.", features: ["Todo de Basic", "1x reunión 1.5h", "Ruta personalizada", "Soporte prioritario", "Materiales extra"], cta: "Comprar Pro", popular: true },
-        { name: "Premium", price: "699", period: "único", desc: "Soporte completo — 3 reuniones, acceso VIP.", features: ["Todo de Pro", "3x reunión 1.5h", "Acceso al calendario", "Soporte VIP", "Cursos futuros gratis"], cta: "Comprar Premium", popular: false },
+        { name: "Basic", price: "99", period: "único", desc: "Igual que el paquete Pro, pero incluye solo una formación de 1h.", features: ["1x formación online (1h)", "Presentación", "Acceso a Google Drive", "Cursos en dashboard", "Certificado", "Opción de comprar otra (+69 zł)"], cta: "Comprar Basic", popular: false },
+        { name: "Pro", price: "399", oldPrice: "599", easterSale: true, period: "único", desc: "Paquete de formación. Descuento de Pascua desde 599 zł (hasta 07.04.2026).", features: ["2x reuniones online", "Presentación", "Acceso a Google Drive", "Cursos en dashboard", "Certificado"], cta: "Comprar Pro", popular: true },
       ],
     },
     community: {
