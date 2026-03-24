@@ -92,7 +92,7 @@ export default function Offer() {
         </motion.div>
 
         {/* Pricing tiers */}
-        <div className={`grid md:grid-cols-${tiers.length === 2 ? '2 max-w-4xl mx-auto' : '3'} gap-6 mb-12`}>
+        <div className={tiers.length === 2 ? "grid md:grid-cols-2 max-w-4xl mx-auto gap-6 mb-12" : "grid md:grid-cols-3 gap-6 mb-12"}>
           {tiers.map((tier: { name: string; price: string; oldPrice?: string; easterSale?: boolean; period: string; desc: string; features: string[]; cta: string; popular: boolean }, i: number) => {
             const Icon = tierIcons[i] || Star;
             const colors = tierColors[i] || tierColors[0];

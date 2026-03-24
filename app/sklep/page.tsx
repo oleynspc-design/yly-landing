@@ -202,7 +202,7 @@ export default function ShopPage() {
                 Pakiety
               </div>
               <h2 className="text-3xl sm:text-4xl font-black text-white mb-3">Wybierz swój pakiet</h2>
-              <p className="text-gray-400 max-w-xl mx-auto">Każdy pakiet daje dostęp do szkoleń. Pakiety Pro i Premium zawierają spotkania online 1-na-1 z Patrykiem.</p>
+              <p className="text-gray-400 max-w-xl mx-auto">Każdy pakiet daje dostęp do szkoleń. Pakiet Pro zawiera 2 spotkania online z Patrykiem.</p>
             </div>
           </motion.div>
 
